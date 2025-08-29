@@ -14,7 +14,8 @@ class TaskFile {
 		public readonly fileName: string,
 		public readonly fileUri: vscode.Uri,
 		public readonly timestamp: Date,
-		public readonly timestampString: string
+		public readonly timestampString: string,
+		public readonly priority: 'p1' | 'p2' | 'p3'
 	) {}
 }
 
@@ -172,17 +173,34 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 		
 		// Sort task files by timestamp (chronological order)
-		filteredTaskData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+		// Sort by priority (p1 > p2 > p3), then by timestamp
+		const priorityOrder = { p1: 0, p2: 1, p3: 2 };
+		filteredTaskData.sort((a, b) => {
+			const prioDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+			if (prioDiff !== 0) {
+				return prioDiff;
+			}
+			return a.timestamp.getTime() - b.timestamp.getTime();
+		});
 		
 		// Create tree items from sorted task files
 		this.taskFiles = filteredTaskData.map(taskFile => {
 			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
-			const icon = isOverdue ? '⚠️' : '📅';
-
+			// Use colored square emoji for both overdue and not overdue, based on priority
+			let icon = '🔴'; // red for p1
+			if (taskFile.priority === 'p2') {
+				icon = '🟠'; // orange for p2
+			} else if (taskFile.priority === 'p3') {
+				icon = '🔵'; // blue for p3
+			}
 			const displayText = this.getFileDisplayText(taskFile.filePath);
+			// For overdue items, show warning icon immediately after priority icon
+			let label = isOverdue
+				? `${icon}⚠️ ${displayText} - ${relativeDate}`
+				: `${icon} ${displayText} - ${relativeDate}`;
 			return new TaskFileItem(
-				`${icon} ${displayText} - ${relativeDate}`,
+				label,
 				taskFile.fileUri,
 				vscode.TreeItemCollapsibleState.None,
 				{
@@ -245,19 +263,24 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (hasTaskHashtag && timestampMatch && !isDoneTask) {
 				const timestampString = timestampMatch[0];
 				const parsedTimestamp = this.parseTimestamp(timestampString);
-				
+				// Detect priority
+				let priority: 'p1' | 'p2' | 'p3' = 'p1';
+				if (content.includes('#p2')) {
+					priority = 'p2';
+				} else if (content.includes('#p3')) {
+					priority = 'p3';
+				}
 				if (parsedTimestamp) {
 					const fileName = path.basename(filePath);
 					const fileUri = vscode.Uri.file(filePath);
-					
 					const taskFile = new TaskFile(
 						filePath,
 						fileName,
 						fileUri,
 						parsedTimestamp,
-						timestampString
+						timestampString,
+						priority
 					);
-					
 					this.taskFileData.push(taskFile);
 				}
 			}

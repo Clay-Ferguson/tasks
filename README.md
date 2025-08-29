@@ -119,6 +119,33 @@ Tasks appear in the panel as:
 2. Right-click → "Insert Timestamp"
 3. Current date/time is automatically inserted in correct format
 
+## Task Prioritization
+
+You can set a priority for each task file using hashtags:
+
+- `#p1` — **High Priority** (red icon)
+- `#p2` — **Medium Priority** (orange icon)
+- `#p3` — **Low Priority** (blue icon)
+
+If no priority hashtag is present, the file is treated as high priority (`#p1`).
+
+### How Priorities Work
+- The Task Panel sorts tasks by priority first (high → medium → low), then by due date.
+- Each task shows a colored icon:
+  - 🔴 High
+  - 🟠 Medium
+  - 🔵 Low
+- If a task is overdue, a yellow warning icon (⚠️) appears immediately after the priority icon.
+
+**Example:**
+```
+🔴⚠️ Finish urgent report - 2 days overdue
+🟠 Review documentation - Due tomorrow
+🔵 Update website - Due in 5 days
+```
+
+Just add the appropriate hashtag anywhere in your markdown file to set its priority.
+
 ## Installation
 
 ### From VSIX File
