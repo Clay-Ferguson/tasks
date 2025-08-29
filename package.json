@@ -37,7 +37,7 @@
       "taskManager": [
         {
           "id": "taskExplorer",
-          "name": "Task Files"
+          "name": "Tasks"
         }
       ]
     },

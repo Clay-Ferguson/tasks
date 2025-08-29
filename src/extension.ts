@@ -37,23 +37,42 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private taskFiles: TaskFileItem[] = [];
 	private scannedFiles: Set<string> = new Set(); // Track scanned files to prevent duplicates
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
+	private currentFilter: string = 'All'; // Track current filter state
+	private treeView: vscode.TreeView<TaskFileItem> | null = null;
+
+	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
+		this.treeView = treeView;
+		this.updateTreeViewTitle(); // Set initial title
+	}
 
 	refresh(): void {
+		this.currentFilter = 'All';
+		this.updateTreeViewTitle();
 		this.scanForTaskFiles().then(() => {
 			this._onDidChangeTreeData.fire();
 		});
 	}
 
 	refreshDueSoon(): void {
+		this.currentFilter = 'Due Soon';
+		this.updateTreeViewTitle();
 		this.scanForTaskFiles(true).then(() => {
 			this._onDidChangeTreeData.fire();
 		});
 	}
 
 	refreshOverdue(): void {
+		this.currentFilter = 'Overdue';
+		this.updateTreeViewTitle();
 		this.scanForTaskFiles(false, true).then(() => {
 			this._onDidChangeTreeData.fire();
 		});
+	}
+
+	private updateTreeViewTitle(): void {
+		if (this.treeView) {
+			this.treeView.title = this.currentFilter;
+		}
 	}
 
 	getTreeItem(element: TaskFileItem): vscode.TreeItem {
@@ -234,6 +253,9 @@ export function activate(context: vscode.ExtensionContext) {
 		treeDataProvider: taskProvider,
 		showCollapseAll: true
 	});
+
+	// Set the tree view reference in the provider
+	taskProvider.setTreeView(treeView);
 
 	// Register commands
 	const showAllTasksCommand = vscode.commands.registerCommand('task-manager.showAllTasks', () => {
