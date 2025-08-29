@@ -289,6 +289,15 @@ export function activate(context: vscode.ExtensionContext) {
 	// Set the tree view reference in the provider
 	taskProvider.setTreeView(treeView);
 
+	// Add visibility listener to trigger initial scan when user first opens the panel
+	let hasScannedOnce = false;
+	treeView.onDidChangeVisibility((e) => {
+		if (e.visible && !hasScannedOnce) {
+			hasScannedOnce = true;
+			taskProvider.refresh();
+		}
+	});
+
 	// Register commands
 	const showAllTasksCommand = vscode.commands.registerCommand('task-manager.showAllTasks', () => {
 		taskProvider.refresh();
@@ -332,9 +341,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.showInformationMessage(`Timestamp inserted: ${timestamp}`);
 	});
-
-	// Initial scan
-	taskProvider.refresh();
 
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
