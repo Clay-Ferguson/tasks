@@ -31,6 +31,16 @@
       {
         "command": "task-manager.insertTimestamp",
         "title": "Insert Timestamp"
+      },
+      {
+        "command": "task-manager.filterPriority",
+        "title": "Filter Priority",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "task-manager.filterPriority",
+        "title": "Filter Priority",
+        "icon": "$(filter)"
       }
     ],
     "views": {
@@ -64,6 +74,11 @@
         },
         {
           "command": "task-manager.showTasksOverdue",
+          "when": "view == taskExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "task-manager.filterPriority",
           "when": "view == taskExplorer",
           "group": "navigation"
         }

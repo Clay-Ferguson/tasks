@@ -66,6 +66,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private scannedFiles: Set<string> = new Set(); // Track scanned files to prevent duplicates
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
 	private currentFilter: string = 'All'; // Track current filter state
+	private currentPriorityFilter: string = 'all'; // Track current priority filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
 
@@ -99,6 +100,16 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(false, true).then(() => {
+			this.hideScanningIndicator();
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
+	filterByPriority(priorityFilter: string): void {
+		this.currentPriorityFilter = priorityFilter;
+		this.updateTreeViewTitle();
+		this.showScanningIndicator();
+		this.scanForTaskFiles().then(() => {
 			this.hideScanningIndicator();
 			this._onDidChangeTreeData.fire();
 		});
@@ -169,6 +180,13 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Filter by overdue only (past due date)
 			filteredTaskData = this.taskFileData.filter(taskFile => 
 				taskFile.timestamp < now
+			);
+		}
+
+		// Apply priority filter if not "all"
+		if (this.currentPriorityFilter !== 'all') {
+			filteredTaskData = filteredTaskData.filter(taskFile => 
+				taskFile.priority === this.currentPriorityFilter
 			);
 		}
 		
@@ -418,12 +436,30 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage(`Timestamp inserted: ${timestamp}`);
 	});
 
+	const filterPriorityCommand = vscode.commands.registerCommand('task-manager.filterPriority', async () => {
+		const options = [
+			{ label: 'All Priorities', value: 'all' },
+			{ label: 'Priority 1 (High)', value: 'p1' },
+			{ label: 'Priority 2 (Medium)', value: 'p2' },
+			{ label: 'Priority 3 (Low)', value: 'p3' }
+		];
+
+		const selected = await vscode.window.showQuickPick(options, {
+			placeHolder: 'Select priority filter'
+		});
+
+		if (selected) {
+			taskProvider.filterByPriority(selected.value);
+		}
+	});
+
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(showAllTasksCommand);
 	context.subscriptions.push(showTasksDueSoonCommand);
 	context.subscriptions.push(showTasksOverdueCommand);
 	context.subscriptions.push(insertTimestampCommand);
+	context.subscriptions.push(filterPriorityCommand);
 }
 
 // This method is called when your extension is deactivated
