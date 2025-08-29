@@ -47,6 +47,10 @@ At the top of our Task Manager panel next to the "Show All Tasks" icon, create a
 
 Next to the "Tasks Due Soon" icon please create another icon named "Tasks Overdue". This will of course show the task files that have a timestamp at some point in the past.
 
-## Step 6 (current):
+## Step 6 (completed):
 
 We need one more filter criteria on all our queries which is to ignore any files that contain the hashtag "#done". This is becasue, users be marking their task files as done (completed) simply by adding "#done" to the file (without the quotes of course, it will be a regular hashtag without quotes)
+
+## Step 7 (current):
+
+To make this extension much easier to use, please add the capability for users to right-click inside any file in the editor, and choose "Insert Timestamp" from the right-click context menu, and make that insert the timestamp (using the format above of course) into the file at the location where the cursor currently is located. I'm not sure if there's a "Date Selection" component build into VSCode or not, but if there is you can somehow make use of that, if you think there's a good way. For now please don't try to include any 3rd party libraries for date selection, but as I said, if a date picker is already part of VSCode it would be really nice to use that so users can back a time using a graphical component of some kind. Otherwise, as I said just use the current time and insert it in at the cursor location.

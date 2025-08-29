@@ -251,6 +251,34 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Scanning for overdue tasks...');
 	});
 
+	const insertTimestampCommand = vscode.commands.registerCommand('task-manager.insertTimestamp', () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found');
+			return;
+		}
+
+		// Generate current timestamp in the required format
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+		const hours12 = now.getHours() % 12 || 12;
+		const minutes = String(now.getMinutes()).padStart(2, '0');
+		const seconds = String(now.getSeconds()).padStart(2, '0');
+		const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+		
+		const timestamp = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+
+		// Insert timestamp at cursor position
+		const position = editor.selection.active;
+		editor.edit(editBuilder => {
+			editBuilder.insert(position, timestamp);
+		});
+
+		vscode.window.showInformationMessage(`Timestamp inserted: ${timestamp}`);
+	});
+
 	// Initial scan
 	taskProvider.refresh();
 
@@ -259,6 +287,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(showAllTasksCommand);
 	context.subscriptions.push(showTasksDueSoonCommand);
 	context.subscriptions.push(showTasksOverdueCommand);
+	context.subscriptions.push(insertTimestampCommand);
 }
 
 // This method is called when your extension is deactivated

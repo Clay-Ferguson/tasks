@@ -27,6 +27,10 @@
         "command": "task-manager.showTasksOverdue",
         "title": "Tasks Overdue",
         "icon": "$(warning)"
+      },
+      {
+        "command": "task-manager.insertTimestamp",
+        "title": "Insert Timestamp"
       }
     ],
     "views": {
@@ -73,6 +77,15 @@
         },
         {
           "command": "task-manager.showTasksOverdue"
+        },
+        {
+          "command": "task-manager.insertTimestamp"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "task-manager.insertTimestamp",
+          "group": "z_commands"
         }
       ]
     }
