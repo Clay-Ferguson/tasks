@@ -19,9 +19,9 @@
         "icon": "$(list-unordered)"
       },
       {
-        "command": "task-manager.refreshTasks",
-        "title": "Refresh",
-        "icon": "$(refresh)"
+        "command": "task-manager.showTasksDueSoon",
+        "title": "Tasks Due Soon",
+        "icon": "$(clock)"
       }
     ],
     "views": {
@@ -44,12 +44,12 @@
     "menus": {
       "view/title": [
         {
-          "command": "task-manager.refreshTasks",
+          "command": "task-manager.showAllTasks",
           "when": "view == taskExplorer",
           "group": "navigation"
         },
         {
-          "command": "task-manager.showAllTasks",
+          "command": "task-manager.showTasksDueSoon",
           "when": "view == taskExplorer",
           "group": "navigation"
         }
@@ -57,6 +57,9 @@
       "commandPalette": [
         {
           "command": "task-manager.showAllTasks"
+        },
+        {
+          "command": "task-manager.showTasksDueSoon"
         }
       ]
     }

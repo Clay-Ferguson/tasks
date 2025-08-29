@@ -44,6 +44,12 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
+	refreshDueSoon(): void {
+		this.scanForTaskFiles(true).then(() => {
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
 	getTreeItem(element: TaskFileItem): vscode.TreeItem {
 		return element;
 	}
@@ -56,7 +62,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		return Promise.resolve([]);
 	}
 
-	private async scanForTaskFiles(): Promise<void> {
+	private async scanForTaskFiles(dueSoonOnly: boolean = false): Promise<void> {
 		this.taskFiles = [];
 		this.taskFileData = [];
 		this.scannedFiles.clear(); // Clear the set of scanned files
@@ -68,11 +74,23 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		await this.scanDirectory(workspaceFolder.uri.fsPath);
 		
+		// Filter by due soon if requested (within 3 days)
+		let filteredTaskData = this.taskFileData;
+		if (dueSoonOnly) {
+			const threeDaysFromNow = new Date();
+			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
+			
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp <= threeDaysFromNow
+			);
+		}
+		
 		// Sort task files by timestamp (chronological order)
-		this.taskFileData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+		filteredTaskData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 		
 		// Create tree items from sorted task files
-		this.taskFiles = this.taskFileData.map(taskFile => 
+		this.taskFiles = filteredTaskData.map(taskFile => 
 			new TaskFileItem(
 				`${taskFile.fileName} (${taskFile.timestampString})`,
 				taskFile.fileUri,
@@ -204,11 +222,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// Register commands
 	const showAllTasksCommand = vscode.commands.registerCommand('task-manager.showAllTasks', () => {
 		taskProvider.refresh();
-		vscode.window.showInformationMessage('Scanning for files containing #task...');
+		vscode.window.showInformationMessage('Scanning for all files containing #task...');
 	});
 
-	const refreshTasksCommand = vscode.commands.registerCommand('task-manager.refreshTasks', () => {
-		taskProvider.refresh();
+	const showTasksDueSoonCommand = vscode.commands.registerCommand('task-manager.showTasksDueSoon', () => {
+		taskProvider.refreshDueSoon();
+		vscode.window.showInformationMessage('Scanning for tasks due within 3 days...');
 	});
 
 	// Initial scan
@@ -217,7 +236,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(showAllTasksCommand);
-	context.subscriptions.push(refreshTasksCommand);
+	context.subscriptions.push(showTasksDueSoonCommand);
 }
 
 // This method is called when your extension is deactivated

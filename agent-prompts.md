@@ -10,7 +10,7 @@ We will be building a bare-bones "Task Management" app, in this project. It will
 
 We're going to let the AI Agent build this app one step at a time, using the following steps:
 
-## Step 1 (complete):
+## Step 1 (completed):
 
 The main thing this extension will do is to create a panel on the left side of the VSCode app which can display a list of files based on certain criteria.We'll need a menu item that can be clicked by the user somewhere in the application and I'll let the AI (you!) decide where to put that menu item. 
 
@@ -31,10 +31,14 @@ So to clarify all of that, what this vs code extension will do for the users is 
 - Git repository initialized with initial commit
 - Extension compiles successfully, ready for testing with F5
 
-## Step 2:
+## Step 2 (completed):
 
 Next add a further condition to the existing search for "#task" keyword, and require the files to also (in addition to containing "#task") contain a timestamp formatted like this example: "[2025/06/15 04:25:50 PM]". You can use this REGEX which I already know works: `\\[20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\\]`. We do this because for a file to represent a Task one of the things is must contain is a due date, and whatever timestamp we see in the file is automatically the due date.
 
-## Step 3:
+## Step 3 (completed):
 
 Next let's order the files by the timestamp in the file (the same timestamp I mentioned in Step 2 above), in order to display the files in chronological order in our Task Manager panel. You'll probably want to create a container object to hold each file so you can have your object have the filename, and the timestamp kept together in that object. In other words, please don't put all the timestamps in an array by themselves, ...but you probably already knew better than to make that mistake.
+
+## Step 4 (current):
+
+At the top of our Task Manager panel next to the "Show All Tasks" icon, create another icon named "Tasks Due Soon", and make it find all task files, but with the additional criteria that the timestamp is no more than 3 days into the future. So by "soon" we mean 3 days.
