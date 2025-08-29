@@ -123,9 +123,13 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		filteredTaskData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 		
 		// Create tree items from sorted task files
-		this.taskFiles = filteredTaskData.map(taskFile => 
-			new TaskFileItem(
-				`${taskFile.fileName} (${taskFile.timestampString})`,
+		this.taskFiles = filteredTaskData.map(taskFile => {
+			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
+			const isOverdue = taskFile.timestamp < now;
+			const icon = isOverdue ? '⚠️' : '📅';
+			
+			return new TaskFileItem(
+				`${icon} ${taskFile.fileName} - ${relativeDate}`,
 				taskFile.fileUri,
 				vscode.TreeItemCollapsibleState.None,
 				{
@@ -133,8 +137,8 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					title: 'Open File',
 					arguments: [taskFile.fileUri]
 				}
-			)
-		);
+			);
+		});
 		
 		// Update context to show/hide the tree view
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
@@ -237,6 +241,35 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		} catch (error) {
 			console.error(`Error parsing timestamp ${timestampString}:`, error);
 			return null;
+		}
+	}
+
+	private getRelativeDateString(taskDate: Date): string {
+		const now = new Date();
+		// Reset time to beginning of day for accurate day comparison
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+		
+		const diffMs = taskDay.getTime() - today.getTime();
+		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+		
+		if (diffDays < 0) {
+			// Overdue
+			const overdueDays = Math.abs(diffDays);
+			if (overdueDays === 1) {
+				return '1 day overdue';
+			} else {
+				return `${overdueDays} days overdue`;
+			}
+		} else if (diffDays === 0) {
+			// Due today
+			return 'Due today';
+		} else if (diffDays === 1) {
+			// Due tomorrow
+			return 'Due tomorrow';
+		} else {
+			// Due in future
+			return `Due in ${diffDays} days`;
 		}
 	}
 }
