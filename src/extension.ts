@@ -4,6 +4,17 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Task file container with parsed timestamp for sorting
+class TaskFile {
+	constructor(
+		public readonly filePath: string,
+		public readonly fileName: string,
+		public readonly fileUri: vscode.Uri,
+		public readonly timestamp: Date,
+		public readonly timestampString: string
+	) {}
+}
+
 // Task file item for the tree view
 class TaskFileItem extends vscode.TreeItem {
 	constructor(
@@ -25,6 +36,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	private taskFiles: TaskFileItem[] = [];
 	private scannedFiles: Set<string> = new Set(); // Track scanned files to prevent duplicates
+	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
 
 	refresh(): void {
 		this.scanForTaskFiles().then(() => {
@@ -46,6 +58,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	private async scanForTaskFiles(): Promise<void> {
 		this.taskFiles = [];
+		this.taskFileData = [];
 		this.scannedFiles.clear(); // Clear the set of scanned files
 		
 		if (!vscode.workspace.workspaceFolders) {
@@ -54,6 +67,23 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		await this.scanDirectory(workspaceFolder.uri.fsPath);
+		
+		// Sort task files by timestamp (chronological order)
+		this.taskFileData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+		
+		// Create tree items from sorted task files
+		this.taskFiles = this.taskFileData.map(taskFile => 
+			new TaskFileItem(
+				`${taskFile.fileName} (${taskFile.timestampString})`,
+				taskFile.fileUri,
+				vscode.TreeItemCollapsibleState.None,
+				{
+					command: 'vscode.open',
+					title: 'Open File',
+					arguments: [taskFile.fileUri]
+				}
+			)
+		);
 		
 		// Update context to show/hide the tree view
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
@@ -100,27 +130,60 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Check for both #task and timestamp pattern
 			const hasTaskHashtag = content.includes('#task');
 			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\]/;
-			const hasTimestamp = timestampRegex.test(content);
+			const timestampMatch = content.match(timestampRegex);
 			
-			if (hasTaskHashtag && hasTimestamp) {
-				const fileName = path.basename(filePath);
-				const fileUri = vscode.Uri.file(filePath);
+			if (hasTaskHashtag && timestampMatch) {
+				const timestampString = timestampMatch[0];
+				const parsedTimestamp = this.parseTimestamp(timestampString);
 				
-				const taskItem = new TaskFileItem(
-					fileName,
-					fileUri,
-					vscode.TreeItemCollapsibleState.None,
-					{
-						command: 'vscode.open',
-						title: 'Open File',
-						arguments: [fileUri]
-					}
-				);
-				
-				this.taskFiles.push(taskItem);
+				if (parsedTimestamp) {
+					const fileName = path.basename(filePath);
+					const fileUri = vscode.Uri.file(filePath);
+					
+					const taskFile = new TaskFile(
+						filePath,
+						fileName,
+						fileUri,
+						parsedTimestamp,
+						timestampString
+					);
+					
+					this.taskFileData.push(taskFile);
+				}
 			}
 		} catch (error) {
 			console.error(`Error scanning file ${filePath}:`, error);
+		}
+	}
+
+	private parseTimestamp(timestampString: string): Date | null {
+		try {
+			// Remove brackets and parse the timestamp
+			const cleanTimestamp = timestampString.replace(/[\[\]]/g, '');
+			// Convert to a format Date can parse: MM/DD/YYYY HH:MM:SS AM/PM
+			const parts = cleanTimestamp.split(' ');
+			const datePart = parts[0]; // YYYY/MM/DD
+			const timePart = parts[1]; // HH:MM:SS
+			const ampm = parts[2]; // AM/PM
+			
+			const dateComponents = datePart.split('/');
+			const year = dateComponents[0];
+			const month = dateComponents[1];
+			const day = dateComponents[2];
+			
+			// Reformat to MM/DD/YYYY for Date parsing
+			const dateString = `${month}/${day}/${year} ${timePart} ${ampm}`;
+			const date = new Date(dateString);
+			
+			// Validate the date
+			if (isNaN(date.getTime())) {
+				return null;
+			}
+			
+			return date;
+		} catch (error) {
+			console.error(`Error parsing timestamp ${timestampString}:`, error);
+			return null;
 		}
 	}
 }
