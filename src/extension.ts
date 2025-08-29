@@ -43,6 +43,21 @@ class TaskFileItem extends vscode.TreeItem {
 
 // Tree data provider for task files
 class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
+	// Extracts the first non-blank line from a file
+	private getFileDisplayText(filePath: string): string {
+		try {
+			const content = fs.readFileSync(filePath, 'utf8');
+			const lines = content.split(/\r?\n/);
+			const firstNonBlank = lines.find(line => line.trim().length > 0);
+			if (!firstNonBlank) {
+				return '(blank file)';
+			}
+			// Trim and remove leading hashes and whitespace
+			return firstNonBlank.trim().replace(/^#+\s*/, '');
+		} catch {
+			return '(unable to read file)';
+		}
+	}
 	private _onDidChangeTreeData: vscode.EventEmitter<TaskFileItem | undefined | null | void> = new vscode.EventEmitter<TaskFileItem | undefined | null | void>();
 	readonly onDidChangeTreeData: vscode.Event<TaskFileItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
@@ -164,9 +179,10 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const icon = isOverdue ? '⚠️' : '📅';
-			
+
+			const displayText = this.getFileDisplayText(taskFile.filePath);
 			return new TaskFileItem(
-				`${icon} ${taskFile.fileName} - ${relativeDate}`,
+				`${icon} ${displayText} - ${relativeDate}`,
 				taskFile.fileUri,
 				vscode.TreeItemCollapsibleState.None,
 				{
