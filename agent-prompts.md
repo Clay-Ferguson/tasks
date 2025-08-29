@@ -18,6 +18,19 @@ So for now let's make things very simple by doing the following: Start by making
 
 So to clarify all of that, what this vs code extension will do for the users is allow them to click a button and then automatically see all the files that they've got that contain "#task". Obviously we're going to be adding more features later but that's what I would like to accomplish in Step 1 (this step). And in case you're wondering yes it's correct that there are currently no files in this project (except the one you're reading now) so you'll be creating this VSCode extension from scratch, in case that wan't clear.
 
+### Step 1 Outcome:
+
+✅ **Completed: Basic Task Manager VSCode Extension**
+
+- Created TypeScript VSCode extension with Activity Bar icon (checklist symbol)
+- Implemented TreeDataProvider that scans workspace for files containing "#task" 
+- Added custom tree view panel "Task Files" with clickable file list
+- Commands: `task-manager.showAllTasks` and `task-manager.refreshTasks`
+- Recursive file scanning with duplicate prevention and smart directory skipping
+- Files open directly when clicked in the tree view
+- Git repository initialized with initial commit
+- Extension compiles successfully, ready for testing with F5
+
 ## Step 2:
 
-Add an actuall menu item or button somewhere that runs our "Show All Tasks"
+Next add a further condition to the existing search for "#task" keyword, and require the files to also (in addition to containing "#task") contain a timestamp formatted like this example: "[2025/06/15 04:25:50 PM]". You can use this REGEX which I already know works: `\\[20[0-9][0-9]/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\\]`. We do this because for a file to represent a Task one of the things is must contain is a due date, and whatever timestamp we see in the file is automatically the due date.

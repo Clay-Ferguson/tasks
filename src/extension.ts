@@ -69,7 +69,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				// Skip node_modules, .git, and other common directories we don't want to scan
 				if (entry.isDirectory() && !this.shouldSkipDirectory(entry.name)) {
 					await this.scanDirectory(fullPath);
-				} else if (entry.isFile() && this.isTextFile(entry.name)) {
+				} else if (entry.isFile() && this.isMarkdownFile(entry.name)) {
 					await this.scanFile(fullPath);
 				}
 			}
@@ -83,10 +83,8 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		return skipDirs.includes(dirName) || dirName.startsWith('.');
 	}
 
-	private isTextFile(fileName: string): boolean {
-		const textExtensions = ['.txt', '.md', '.js', '.ts', '.json', '.html', '.css', '.py', '.java', '.cpp', '.c', '.h', '.xml', '.yaml', '.yml', '.sh', '.bat', '.ps1', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.scala', '.clj', '.sql', '.r', '.m', '.vue', '.jsx', '.tsx', '.scss', '.less', '.sass', '.styl', '.coffee', '.dart', '.elm', '.fs', '.fsx', '.hs', '.lua', '.pl', '.pm', '.tcl', '.vb', '.cs', '.f90', '.f95', '.for', '.asm', '.s'];
-		const ext = path.extname(fileName).toLowerCase();
-		return textExtensions.includes(ext) || !ext; // Include files without extension
+	private isMarkdownFile(fileName: string): boolean {
+		return fileName.toLowerCase().endsWith('.md');
 	}
 
 	private async scanFile(filePath: string): Promise<void> {
@@ -98,7 +96,13 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			this.scannedFiles.add(filePath);
 
 			const content = await fs.promises.readFile(filePath, 'utf8');
-			if (content.includes('#task')) {
+			
+			// Check for both #task and timestamp pattern
+			const hasTaskHashtag = content.includes('#task');
+			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\]/;
+			const hasTimestamp = timestampRegex.test(content);
+			
+			if (hasTaskHashtag && hasTimestamp) {
 				const fileName = path.basename(filePath);
 				const fileUri = vscode.Uri.file(filePath);
 				
