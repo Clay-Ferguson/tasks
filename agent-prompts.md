@@ -39,6 +39,10 @@ Next add a further condition to the existing search for "#task" keyword, and req
 
 Next let's order the files by the timestamp in the file (the same timestamp I mentioned in Step 2 above), in order to display the files in chronological order in our Task Manager panel. You'll probably want to create a container object to hold each file so you can have your object have the filename, and the timestamp kept together in that object. In other words, please don't put all the timestamps in an array by themselves, ...but you probably already knew better than to make that mistake.
 
-## Step 4 (current):
+## Step 4 (completed):
 
 At the top of our Task Manager panel next to the "Show All Tasks" icon, create another icon named "Tasks Due Soon", and make it find all task files, but with the additional criteria that the timestamp is no more than 3 days into the future. So by "soon" we mean 3 days.
+
+## Step 5 (completed):
+
+Next to the "Tasks Due Soon" icon please create another icon named "Tasks Overdue". This will of course show the task files that have a timestamp at some point in the past.

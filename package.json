@@ -22,6 +22,11 @@
         "command": "task-manager.showTasksDueSoon",
         "title": "Tasks Due Soon",
         "icon": "$(clock)"
+      },
+      {
+        "command": "task-manager.showTasksOverdue",
+        "title": "Tasks Overdue",
+        "icon": "$(warning)"
       }
     ],
     "views": {
@@ -52,6 +57,11 @@
           "command": "task-manager.showTasksDueSoon",
           "when": "view == taskExplorer",
           "group": "navigation"
+        },
+        {
+          "command": "task-manager.showTasksOverdue",
+          "when": "view == taskExplorer",
+          "group": "navigation"
         }
       ],
       "commandPalette": [
@@ -60,6 +70,9 @@
         },
         {
           "command": "task-manager.showTasksDueSoon"
+        },
+        {
+          "command": "task-manager.showTasksOverdue"
         }
       ]
     }

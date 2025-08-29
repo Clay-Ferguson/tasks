@@ -50,6 +50,12 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
+	refreshOverdue(): void {
+		this.scanForTaskFiles(false, true).then(() => {
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
 	getTreeItem(element: TaskFileItem): vscode.TreeItem {
 		return element;
 	}
@@ -62,7 +68,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		return Promise.resolve([]);
 	}
 
-	private async scanForTaskFiles(dueSoonOnly: boolean = false): Promise<void> {
+	private async scanForTaskFiles(dueSoonOnly: boolean = false, overdueOnly: boolean = false): Promise<void> {
 		this.taskFiles = [];
 		this.taskFileData = [];
 		this.scannedFiles.clear(); // Clear the set of scanned files
@@ -74,15 +80,23 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		await this.scanDirectory(workspaceFolder.uri.fsPath);
 		
-		// Filter by due soon if requested (within 3 days)
+		// Filter by due soon or overdue if requested
 		let filteredTaskData = this.taskFileData;
+		const now = new Date();
+		
 		if (dueSoonOnly) {
+			// Filter by due soon (within 3 days OR overdue)
 			const threeDaysFromNow = new Date();
 			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
 			
 			filteredTaskData = this.taskFileData.filter(taskFile => 
 				taskFile.timestamp <= threeDaysFromNow
+			);
+		} else if (overdueOnly) {
+			// Filter by overdue only (past due date)
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp < now
 			);
 		}
 		
@@ -230,6 +244,11 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Scanning for tasks due within 3 days...');
 	});
 
+	const showTasksOverdueCommand = vscode.commands.registerCommand('task-manager.showTasksOverdue', () => {
+		taskProvider.refreshOverdue();
+		vscode.window.showInformationMessage('Scanning for overdue tasks...');
+	});
+
 	// Initial scan
 	taskProvider.refresh();
 
@@ -237,6 +256,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(showAllTasksCommand);
 	context.subscriptions.push(showTasksDueSoonCommand);
+	context.subscriptions.push(showTasksOverdueCommand);
 }
 
 // This method is called when your extension is deactivated
