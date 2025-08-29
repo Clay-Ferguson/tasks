@@ -1,6 +1,6 @@
 # Task Manager - VSCode Extension
 
-A powerful task management extension for Visual Studio Code that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system.
+A minimalist task management extension for Visual Studio Code that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system.
 
 ## Overview
 
@@ -38,6 +38,8 @@ Need to finish the quarterly report #task
 - Include sales figures
 - Review with team lead
 ```
+
+*Note that the only important thing about the above example markdown file is that it contains `#task` (making the entier file considered to be a definition of a task) and the formatted timestamp which has to be in that specific format.*
 
 ### Supported Hashtags
 
