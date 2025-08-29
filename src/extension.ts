@@ -250,8 +250,7 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	// Register the tree view
 	const treeView = vscode.window.createTreeView('taskExplorer', {
-		treeDataProvider: taskProvider,
-		showCollapseAll: true
+		treeDataProvider: taskProvider
 	});
 
 	// Set the tree view reference in the provider
