@@ -46,3 +46,7 @@ At the top of our Task Manager panel next to the "Show All Tasks" icon, create a
 ## Step 5 (completed):
 
 Next to the "Tasks Due Soon" icon please create another icon named "Tasks Overdue". This will of course show the task files that have a timestamp at some point in the past.
+
+## Step 6 (current):
+
+We need one more filter criteria on all our queries which is to ignore any files that contain the hashtag "#done". This is becasue, users be marking their task files as done (completed) simply by adding "#done" to the file (without the quotes of course, it will be a regular hashtag without quotes)

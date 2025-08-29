@@ -159,12 +159,14 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			const content = await fs.promises.readFile(filePath, 'utf8');
 			
-			// Check for both #task and timestamp pattern
+			// Check for both #task and timestamp pattern, but exclude #done files
 			const hasTaskHashtag = content.includes('#task');
+			const isDoneTask = content.includes('#done');
 			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\]/;
 			const timestampMatch = content.match(timestampRegex);
 			
-			if (hasTaskHashtag && timestampMatch) {
+			// Only include files that have #task, have a timestamp, but don't have #done
+			if (hasTaskHashtag && timestampMatch && !isDoneTask) {
 				const timestampString = timestampMatch[0];
 				const parsedTimestamp = this.parseTimestamp(timestampString);
 				
