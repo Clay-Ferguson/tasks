@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Constants
+const SCANNING_MESSAGE = 'Scanning workspace';
+
 // Task file container with parsed timestamp for sorting
 class TaskFile {
 	constructor(
@@ -24,8 +27,17 @@ class TaskFileItem extends vscode.TreeItem {
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
-		this.tooltip = `${this.label} - ${resourceUri.fsPath}`;
-		this.description = path.relative(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', resourceUri.fsPath);
+		
+		// Only set tooltip and description for actual files (not scanning indicator)
+		// Check if this is the scanning indicator by looking at the label
+		if (this.label.includes(SCANNING_MESSAGE)) {
+			// For scanning indicator, just show the label without path info
+			this.tooltip = this.label;
+			this.description = '';
+		} else {
+			this.tooltip = `${this.label} - ${resourceUri.fsPath}`;
+			this.description = path.relative(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', resourceUri.fsPath);
+		}
 	}
 }
 
@@ -39,6 +51,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
 	private currentFilter: string = 'All'; // Track current filter state
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
+	private isScanning: boolean = false; // Track scanning state
 
 	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
 		this.treeView = treeView;
@@ -48,7 +61,9 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refresh(): void {
 		this.currentFilter = 'All';
 		this.updateTreeViewTitle();
+		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
+			this.hideScanningIndicator();
 			this._onDidChangeTreeData.fire();
 		});
 	}
@@ -56,7 +71,9 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshDueSoon(): void {
 		this.currentFilter = 'Due Soon';
 		this.updateTreeViewTitle();
+		this.showScanningIndicator();
 		this.scanForTaskFiles(true).then(() => {
+			this.hideScanningIndicator();
 			this._onDidChangeTreeData.fire();
 		});
 	}
@@ -64,9 +81,20 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshOverdue(): void {
 		this.currentFilter = 'Overdue';
 		this.updateTreeViewTitle();
+		this.showScanningIndicator();
 		this.scanForTaskFiles(false, true).then(() => {
+			this.hideScanningIndicator();
 			this._onDidChangeTreeData.fire();
 		});
+	}
+
+	private showScanningIndicator(): void {
+		this.isScanning = true;
+		this._onDidChangeTreeData.fire();
+	}
+
+	private hideScanningIndicator(): void {
+		this.isScanning = false;
 	}
 
 	private updateTreeViewTitle(): void {
@@ -81,7 +109,16 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	getChildren(element?: TaskFileItem): Thenable<TaskFileItem[]> {
 		if (!element) {
-			// Return root level items (all task files)
+			// Return root level items (all task files or scanning indicator)
+			if (this.isScanning) {
+				return Promise.resolve([
+					new TaskFileItem(
+						`⏳ ${SCANNING_MESSAGE}...`,
+						vscode.Uri.file(''),
+						vscode.TreeItemCollapsibleState.None
+					)
+				]);
+			}
 			return Promise.resolve(this.taskFiles);
 		}
 		return Promise.resolve([]);
