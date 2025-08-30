@@ -60,22 +60,22 @@
         {
           "command": "task-manager.showAllTasks",
           "when": "view == taskExplorer",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
           "command": "task-manager.showTasksDueSoon",
           "when": "view == taskExplorer",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
           "command": "task-manager.showTasksOverdue",
           "when": "view == taskExplorer",
-          "group": "navigation"
+          "group": "navigation@3"
         },
         {
           "command": "task-manager.filterPriority",
           "when": "view == taskExplorer",
-          "group": "navigation"
+          "group": "navigation@4"
         }
       ],
       "commandPalette": [
