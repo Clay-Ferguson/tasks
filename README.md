@@ -209,6 +209,23 @@ This creates a `.vsix` file ready for distribution.
 code --install-extension task-manager-0.0.1.vsix
 ```
 
+### Quick Installation Script
+
+For convenience, you can use the provided `install.sh` script which automates the entire build and installation process:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+This script will:
+1. Install npm dependencies
+2. Compile the TypeScript code
+3. Package the extension
+4. Install it in VS Code
+
+The script includes error handling and will stop with a descriptive message if any step fails.
+
 ### Key Dependencies
 - `vscode`: VSCode Extension API
 - `typescript`: Language support
