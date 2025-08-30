@@ -146,22 +146,6 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
 
 Just add the appropriate hashtag anywhere in your markdown file to set its priority.
 
-## Installation
-
-### From VSIX File
-1. Download the `.vsix` file
-2. Open VSCode
-3. Go to Extensions view (Ctrl+Shift+X)
-4. Click "..." menu → "Install from VSIX..."
-5. Select the downloaded file
-
-### Manual Installation
-1. Copy extension folder to VSCode extensions directory:
-   - **Windows**: `%USERPROFILE%\.vscode\extensions`
-   - **macOS**: `~/.vscode/extensions/`
-   - **Linux**: `~/.vscode/extensions/`
-2. Restart VSCode
-
 ## Developer Information
 
 ### Prerequisites
