@@ -37,7 +37,7 @@ class TaskFileItem extends vscode.TreeItem {
 			this.description = '';
 		} else {
 			this.tooltip = `${this.label} - ${resourceUri.fsPath}`;
-			this.description = path.relative(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', resourceUri.fsPath);
+			this.description = ''; // Remove filename display
 		}
 	}
 }
@@ -49,7 +49,19 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		try {
 			const content = fs.readFileSync(filePath, 'utf8');
 			const lines = content.split(/\r?\n/);
-			const firstNonBlank = lines.find(line => line.trim().length > 0);
+			const nonEmptyLines = lines.filter(line => line.trim().length > 0);
+			
+			// Special case: if there's only one non-empty line and it starts with "#" or "["
+			// then use the filename as the display text
+			if (nonEmptyLines.length === 1) {
+				const line = nonEmptyLines[0].trim();
+				if (line.startsWith('#') || line.startsWith('[')) {
+					const fileName = path.basename(filePath, '.md'); // Remove .md extension
+					return fileName;
+				}
+			}
+			
+			const firstNonBlank = nonEmptyLines[0];
 			if (!firstNonBlank) {
 				return '(blank file)';
 			}

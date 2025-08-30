@@ -41,6 +41,17 @@ Need to finish the quarterly report #task
 
 *Note that the only important thing about the above example markdown file is that it contains `#task` (making the entier file considered to be a definition of a task) and the formatted timestamp which has to be in that specific format.*
 
+#### Simple Task Files Using Filename as Description
+
+For a cleaner workflow, you can create minimal task files where **the filename itself becomes the task description**. This works when your markdown file contains only one non-empty line that starts with either `#` or `[`.
+
+**Example:**
+- **Filename**: `Fix-login-bug.md`
+- **File contents**: `#task [2025/09/15 05:00:00 PM]`
+- **Result**: Task appears as "Fix login bug" in the panel
+
+This is perfect for simple tasks where you don't need additional notes or content - just create a descriptively named file with the task marker and timestamp, and the filename (without the .md extension) will be used as the task description.
+
 ### Supported Hashtags
 
 - **`#task`** - Marks a file as containing a task (required)
@@ -71,16 +82,20 @@ Located in the Tasks panel header:
 
 ### Task Display Format
 
-Tasks appear in the panel as:
+Tasks appear in the panel showing the task description and relative due date:
 ```
-[emoji] filename.md - [relative date]
+[emoji] [task description] - [relative date]
 ```
 
+The task description is either:
+- The first non-blank line from the file (with leading # symbols removed), OR
+- The filename (without .md extension) if the file contains only a task marker and/or timestamp
+
 **Examples:**
-- `📅 report.md - Due tomorrow`
-- `📅 meeting-notes.md - Due in 3 days`
-- `⚠️ budget.md - 2 days overdue`
-- `📅 project.md - Due today`
+- `📅 Finish quarterly report - Due tomorrow`
+- `📅 Review meeting notes - Due in 3 days`
+- `⚠️ Update budget - 2 days overdue`
+- `📅 Fix login bug - Due today`
 
 ### Filtering Options
 
