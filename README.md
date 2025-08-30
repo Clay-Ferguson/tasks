@@ -123,16 +123,25 @@ The task description is either:
 
 ### Timestamp Format
 
-**Required format**: `[YYYY/MM/DD HH:MM:SS AM/PM]`
+**Supported formats**:
 
-**Examples:**
+1. **Full timestamp**: `[YYYY/MM/DD HH:MM:SS AM/PM]` - for time-specific tasks
+2. **Date-only**: `[YYYY/MM/DD]` - for day-specific tasks (assumes 12:00 PM)
+
+**Full timestamp examples:**
 - `[2025/12/25 09:30:00 AM]`
 - `[2025/01/15 11:45:00 PM]`
+
+**Date-only examples:**
+- `[2025/12/25]` - Due at noon on December 25th
+- `[2025/09/17]` - Due at noon on September 17th
 
 **Inserting timestamps:**
 1. Place cursor where you want the timestamp
 2. Right-click → "Insert Timestamp"
-3. Current date/time is automatically inserted in correct format
+3. Current date/time is automatically inserted in full format
+
+*Note: The "Insert Timestamp" command always creates full timestamps. For date-only timestamps, you can manually edit to remove the time portion.*
 
 ## Task Prioritization
 

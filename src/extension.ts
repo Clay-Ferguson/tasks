@@ -286,7 +286,8 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Check for both #task and timestamp pattern, but exclude #done files
 			const hasTaskHashtag = content.includes('#task');
 			const isDoneTask = content.includes('#done');
-			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] (AM|PM)\]/;
+			// Updated regex to support both full timestamp and date-only formats
+			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
 			const timestampMatch = content.match(timestampRegex);
 			
 			// Only include files that have #task, have a timestamp, but don't have #done
@@ -323,27 +324,48 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		try {
 			// Remove brackets and parse the timestamp
 			const cleanTimestamp = timestampString.replace(/[\[\]]/g, '');
-			// Convert to a format Date can parse: MM/DD/YYYY HH:MM:SS AM/PM
-			const parts = cleanTimestamp.split(' ');
-			const datePart = parts[0]; // YYYY/MM/DD
-			const timePart = parts[1]; // HH:MM:SS
-			const ampm = parts[2]; // AM/PM
 			
-			const dateComponents = datePart.split('/');
-			const year = dateComponents[0];
-			const month = dateComponents[1];
-			const day = dateComponents[2];
-			
-			// Reformat to MM/DD/YYYY for Date parsing
-			const dateString = `${month}/${day}/${year} ${timePart} ${ampm}`;
-			const date = new Date(dateString);
-			
-			// Validate the date
-			if (isNaN(date.getTime())) {
-				return null;
+			// Check if this is a date-only format (YYYY/MM/DD) or full format
+			if (cleanTimestamp.match(/^20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9]$/)) {
+				// Date-only format: assume 12:00 PM (noon)
+				const dateComponents = cleanTimestamp.split('/');
+				const year = dateComponents[0];
+				const month = dateComponents[1];
+				const day = dateComponents[2];
+				
+				// Create date string with noon time
+				const dateString = `${month}/${day}/${year} 12:00:00 PM`;
+				const date = new Date(dateString);
+				
+				// Validate the date
+				if (isNaN(date.getTime())) {
+					return null;
+				}
+				
+				return date;
+			} else {
+				// Full timestamp format: YYYY/MM/DD HH:MM:SS AM/PM
+				const parts = cleanTimestamp.split(' ');
+				const datePart = parts[0]; // YYYY/MM/DD
+				const timePart = parts[1]; // HH:MM:SS
+				const ampm = parts[2]; // AM/PM
+				
+				const dateComponents = datePart.split('/');
+				const year = dateComponents[0];
+				const month = dateComponents[1];
+				const day = dateComponents[2];
+				
+				// Reformat to MM/DD/YYYY for Date parsing
+				const dateString = `${month}/${day}/${year} ${timePart} ${ampm}`;
+				const date = new Date(dateString);
+				
+				// Validate the date
+				if (isNaN(date.getTime())) {
+					return null;
+				}
+				
+				return date;
 			}
-			
-			return date;
 		} catch (error) {
 			console.error(`Error parsing timestamp ${timestampString}:`, error);
 			return null;
