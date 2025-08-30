@@ -36,6 +36,8 @@ class TaskFileItem extends vscode.TreeItem {
 			this.tooltip = this.label;
 			this.description = '';
 		} else {
+			// For task files, show the full file path in tooltip but clean display name in description
+			const fileName = path.basename(resourceUri.fsPath);
 			this.tooltip = `${this.label} - ${resourceUri.fsPath}`;
 			this.description = ''; // Remove filename display
 		}
@@ -57,7 +59,9 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				const line = nonEmptyLines[0].trim();
 				if (line.startsWith('#') || line.startsWith('[')) {
 					const fileName = path.basename(filePath, '.md'); // Remove .md extension
-					return fileName;
+					// Strip leading numeric digits and underscores (e.g., "0001_My Fun Task" -> "My Fun Task")
+					const cleanFileName = fileName.replace(/^[\d_]+/, '');
+					return cleanFileName;
 				}
 			}
 			
