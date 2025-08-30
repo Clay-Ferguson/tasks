@@ -1,10 +1,10 @@
-# Task Manager - VSCode Extension
+# Tasks - VSCode Extension
 
 A minimalist task management extension for Visual Studio Code that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system.
 
 ## Overview
 
-Task Manager scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically and include visual indicators for overdue items.
+Tasks scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically and include visual indicators for overdue items.
 
 ## Features
 
@@ -51,16 +51,16 @@ Need to finish the quarterly report #task
 #### Activity Bar Icon
 - **Location**: Left sidebar activity bar
 - **Icon**: Checklist symbol
-- **Function**: Opens the Task Manager panel
+- **Function**: Opens the Tasks panel
 
 #### Task Panel
-- **Location**: Left sidebar (when Task Manager is active)
+- **Location**: Left sidebar (when Tasks is active)
 - **Title**: Shows current filter ("All", "Due Soon", or "Overdue")
 - **Content**: List of tasks with relative due dates and status icons
 
 #### Filter Buttons
-Located in the Task Manager panel header:
-- **Show All Tasks**: Displays all active tasks
+Located in the Tasks panel header:
+- **All Tasks**: Displays all active tasks
 - **Tasks Due Soon**: Shows tasks due within 3 days + overdue tasks
 - **Tasks Overdue**: Shows only past-due tasks
 
@@ -102,7 +102,7 @@ Tasks appear in the panel as:
 ### Task Lifecycle
 
 1. **Create**: Add `#task` and timestamp to a `.md` file
-2. **Track**: View in Task Manager panel with appropriate filter
+2. **Track**: View in Tasks panel with appropriate filter
 3. **Complete**: Add `#done` hashtag to mark as finished
 4. **Archive**: Completed tasks automatically disappear from all views
 
@@ -130,7 +130,7 @@ You can set a priority for each task file using hashtags:
 If no priority hashtag is present, the file is treated as high priority (`#p1`).
 
 ### How Priorities Work
-- The Task Panel sorts tasks by priority first (high → medium → low), then by due date.
+- The Task Panel sorts tasks by priority first (high → medium → low), then by due date.at the top of our Tasks panel we have an icon for "tasks due soon" and it really looks more like a refresh icon than a tasks due soon icon so can we put a different icon on that button. you could still stay with the clock theme on the icon if you want but the circular Arrow makes it look like it's refresh so we need to do a different icon than the one we currently have there.
 - Each task shows a colored icon:
   - 🔴 High
   - 🟠 Medium

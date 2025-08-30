@@ -370,7 +370,7 @@ class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Task Manager extension is now active!');
+	console.log('Tasks extension is now active!');
 
 	// Create the tree data provider
 	const taskProvider = new TaskProvider();

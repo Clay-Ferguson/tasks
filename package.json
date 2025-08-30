@@ -1,6 +1,6 @@
 {
   "name": "task-manager",
-  "displayName": "Task Manager",
+  "displayName": "Tasks",
   "description": "A VSCode extension to manage and display files containing task hashtags",
   "version": "0.0.1",
   "engines": {
@@ -15,13 +15,13 @@
     "commands": [
       {
         "command": "task-manager.showAllTasks",
-        "title": "Show all Tasks",
+        "title": "All Tasks",
         "icon": "$(list-unordered)"
       },
       {
         "command": "task-manager.showTasksDueSoon",
         "title": "Tasks Due Soon",
-        "icon": "$(clock)"
+        "icon": "$(calendar)"
       },
       {
         "command": "task-manager.showTasksOverdue",
@@ -31,11 +31,6 @@
       {
         "command": "task-manager.insertTimestamp",
         "title": "Insert Timestamp"
-      },
-      {
-        "command": "task-manager.filterPriority",
-        "title": "Filter Priority",
-        "icon": "$(filter)"
       },
       {
         "command": "task-manager.filterPriority",
@@ -55,7 +50,7 @@
       "activitybar": [
         {
           "id": "taskManager",
-          "title": "Task Manager",
+          "title": "Tasks",
           "icon": "$(checklist)"
         }
       ]
