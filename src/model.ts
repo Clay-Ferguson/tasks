@@ -67,8 +67,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (!firstNonBlank) {
 				return '(blank file)';
 			}
-			// Trim and remove leading hashes and whitespace
-			return firstNonBlank.trim().replace(/^#+\s*/, '');
+			// Trim and remove leading hashes and whitespace, then remove task-related hashtags
+			let displayText = firstNonBlank.trim().replace(/^#+\s*/, '');
+			// Remove task hashtags (#task, #p1, #p2, #p3, #done) and clean up extra whitespace
+			displayText = displayText.replace(/#(task|p[123]|done)\b/g, '').replace(/\s+/g, ' ').trim();
+			// Trim to maximum of 50 characters
+			displayText = displayText.length > 50 ? displayText.substring(0, 50) + '...' : displayText;
+			return displayText;
 		} catch {
 			return '(unable to read file)';
 		}
@@ -228,19 +233,26 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.taskFiles = filteredTaskData.map(taskFile => {
 			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
+			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
-			if (taskFile.priority === 'p2') {
+			// Use dimmed/hollow icons for far future tasks
+			if (isFarFuture) {
+				icon = '⚪'; // white for far future
+			}
+			else if (taskFile.priority === 'p2') {
 				icon = '🟠'; // orange for p2
 			} else if (taskFile.priority === 'p3') {
 				icon = '🔵'; // blue for p3
 			}
+			
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue
 				? `${icon}⚠️ ${displayText} - ${relativeDate}`
 				: `${icon} ${displayText} - ${relativeDate}`;
-			return new TaskFileItem(
+			
+			const treeItem = new TaskFileItem(
 				label,
 				taskFile.fileUri,
 				vscode.TreeItemCollapsibleState.None,
@@ -250,6 +262,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					arguments: [taskFile.fileUri]
 				}
 			);
+			
+			// Set context value for far future tasks
+			if (isFarFuture) {
+				treeItem.contextValue = 'farFutureTask';
+			}
+			
+			return treeItem;
 		});
 		
 		// Update context to show/hide the tree view
@@ -426,5 +445,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				return `Due in ${diffDays} days`;
 			}
 		}
+	}
+
+	private isFarFuture(taskDate: Date): boolean {
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+		
+		const diffMs = taskDay.getTime() - today.getTime();
+		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+		
+		return diffDays > 365;
 	}
 }
