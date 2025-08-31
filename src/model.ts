@@ -140,7 +140,22 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	private updateTreeViewTitle(): void {
 		if (this.treeView) {
-			this.treeView.title = this.currentFilter;
+			let priorityText = '';
+			switch (this.currentPriorityFilter) {
+				case 'p1':
+					priorityText = ' - P1';
+					break;
+				case 'p2':
+					priorityText = ' - P2';
+					break;
+				case 'p3':
+					priorityText = ' - P3';
+					break;
+				default:
+					priorityText = ' - P*';
+					break;
+			}
+			this.treeView.title = `${this.currentFilter.toUpperCase()}${priorityText}`;
 		}
 	}
 
