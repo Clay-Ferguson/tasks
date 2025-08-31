@@ -21,8 +21,6 @@ This is a VSCode extension for minimalist task management using markdown files. 
   - Install CLI: `npm install -g @vscode/vsce`
   - Build: `vsce package`
   - Install: `code --install-extension task-manager-0.0.1.vsix`
-- **Quick Install:**
-  - Run `install.sh` to automate build, package, and install steps
 
 ## Project-Specific Patterns
 - **Minimal Task Files:** Filename is used as description if file contains only a task marker/timestamp.
@@ -41,7 +39,6 @@ This is a VSCode extension for minimalist task management using markdown files. 
 ## Key Files
 - `src/extension.ts`: Main extension entry point
 - `src/model.ts`, `src/models.ts`: Task data models and logic
-- `install.sh`: Automated build/install script
 - `README.md`: User and developer documentation
 
 ## Example Task File

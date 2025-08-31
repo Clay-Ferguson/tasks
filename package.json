@@ -36,6 +36,16 @@
         "command": "task-manager.filterPriority",
         "title": "Filter Priority",
         "icon": "$(filter)"
+      },
+      {
+        "command": "task-manager.newTask",
+        "title": "New Task",
+        "icon": "$(add)"
+      },
+      {
+        "command": "task-manager.about",
+        "title": "About...",
+        "icon": "$(info)"
       }
     ],
     "views": {
@@ -76,6 +86,30 @@
           "command": "task-manager.filterPriority",
           "when": "view == taskExplorer",
           "group": "navigation@4"
+        },
+        {
+          "command": "task-manager.newTask",
+          "when": "view == taskExplorer",
+          "group": "navigation@5"
+        },
+        {
+          "command": "task-manager.about",
+          "when": "view == taskExplorer",
+          "group": "1_about"
+        }
+      ],
+      "view/context": [
+        {
+          "command": "task-manager.about",
+          "when": "view == taskExplorer",
+          "group": "1_about@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "task-manager.about",
+          "when": "view == taskExplorer",
+          "group": "1_about@1"
         }
       ],
       "commandPalette": [
@@ -90,6 +124,12 @@
         },
         {
           "command": "task-manager.insertTimestamp"
+        },
+        {
+          "command": "task-manager.newTask"
+        },
+        {
+          "command": "task-manager.about"
         }
       ],
       "editor/context": [

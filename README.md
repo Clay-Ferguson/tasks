@@ -19,7 +19,9 @@ Tasks scans your workspace for markdown files containing task markers and due da
 
 ### Creating Tasks
 
-To create a task, your markdown file must contain:
+**Quick Method**: Click the **+** button in the Tasks panel header to instantly create a new task file that's ready to edit.
+
+**Manual Method**: To create a task manually, your markdown file must contain:
 
 1. **Task marker**: `#task` hashtag anywhere in the file
 2. **Due date**: A timestamp in the format `[YYYY/MM/DD HH:MM:SS AM/PM]`
@@ -74,6 +76,18 @@ Located in the Tasks panel header:
 - **All Tasks**: Displays all active tasks
 - **Tasks Due Soon**: Shows tasks due within 3 days + overdue tasks
 - **Tasks Overdue**: Shows only past-due tasks
+
+#### New Task Button
+- **Location**: Tasks panel header (+ icon)
+- **Function**: Creates a new task file with one click
+- **Behavior**: 
+  - Generates a new file named `task-001.md`, `task-002.md`, etc. (auto-increments)
+  - Places file in workspace root directory
+  - Pre-fills with `#task [current timestamp] #p3` format
+  - Automatically opens the new file for editing
+  - Refreshes the Tasks panel to show the new task
+
+This is the quickest way to create a new task - just click the + button and start typing your task description!
 
 #### Right-Click Context Menu
 - **Location**: Any text editor
