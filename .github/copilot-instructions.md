@@ -22,6 +22,10 @@ This is a VSCode extension for minimalist task management using markdown files. 
   - Build: `vsce package`
   - Install: `code --install-extension task-manager-0.0.1.vsix`
 
+## Note to AI Agents
+
+When making changes to the code, you can run `npm run compile` whenever you'd like to, but don't try to create any new markdown files for use during testing, because when we test this app we always do so by running "Run -> Start Debugging" menu option, which will open up a VSCode instance and open a folder outside of this project which is the one we really  use for testing.
+
 ## Project-Specific Patterns
 - **Minimal Task Files:** Filename is used as description if file contains only a task marker/timestamp.
 - **Hashtag Conventions:**
