@@ -1,10 +1,10 @@
 # Tasks - VSCode Extension
 
-A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and has a due-date, and optionally a priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` as well as a timestamp formatted like `[YYYY/MM/DD HH:MM:SS AM/PM]` (or `[YYYY/MM/DD]`) is automatically considered as a `Task`, by this extension, and will show up in the Extension's Tasks Panel. 
+A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[YYYY/MM/DD HH:MM:SS AM/PM]` (or `[YYYY/MM/DD]`) to specify a due date. 
 
 ## Overview (how it works)
 
-Tasks scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically and include visual indicators for overdue items.
+Tasks scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically by due date and include visual indicators for overdue items.
 
 ## Features
 
@@ -24,8 +24,10 @@ Tasks scans your workspace for markdown files containing task markers and due da
 **Manual Method**: To create a task manually, your markdown file must contain:
 
 1. **Task marker**: `#task` hashtag anywhere in the file
-2. **Due date**: A timestamp in the format `[YYYY/MM/DD HH:MM:SS AM/PM]`
+2. **Due date** (optional): A timestamp in the format `[YYYY/MM/DD HH:MM:SS AM/PM]`
 3. **File extension**: Must be a `.md` (markdown) file
+
+If no timestamp is provided, the task will be treated as a low-priority, far-future task.
 
 **Example task file:**
 ```markdown
@@ -41,7 +43,7 @@ Need to finish the quarterly report #task
 - Review with team lead
 ```
 
-*Note that the only important thing about the above example markdown file is that it contains `#task` (making the entier file considered to be a definition of a task) and the formatted timestamp which has to be in that specific format.*
+*Note that the only important thing about the above example markdown file is that it contains `#task` (making the entire file considered to be a definition of a task). The formatted timestamp is optional but allows you to specify a due date in the specific format shown.*
 
 #### Simple Task Files Using Filename as Description
 
@@ -49,7 +51,7 @@ For a cleaner workflow, you can create minimal task files where **the filename i
 
 **Example:**
 - **Filename**: `Fix-login-bug.md`
-- **File contents**: `#task [2025/09/15 05:00:00 PM]`
+- **File contents**: `#task [2025/09/15 05:00:00 PM]` (or just `#task`)
 - **Result**: Task appears as "Fix login bug" in the panel
 
 This is perfect for simple tasks where you don't need additional notes or content - just create a descriptively named file with the task marker and timestamp, and the filename (without the .md extension) will be used as the task description.
@@ -116,7 +118,7 @@ The task description is either:
 #### All Tasks
 - Shows every task file in the workspace
 - Excludes files marked with `#done`
-- Sorted chronologically (earliest due date first)
+- Sorted chronologically by due date (earliest first)
 
 #### Tasks Due Soon
 - Shows tasks due within the next 3 days
@@ -168,7 +170,7 @@ You can set a priority for each task file using hashtags:
 If no priority hashtag is present, the file is treated as high priority (`#p1`).
 
 ### How Priorities Work
-- The Task Panel sorts tasks by priority first (high → medium → low), then by due date.at the top of our Tasks panel we have an icon for "tasks due soon" and it really looks more like a refresh icon than a tasks due soon icon so can we put a different icon on that button. you could still stay with the clock theme on the icon if you want but the circular Arrow makes it look like it's refresh so we need to do a different icon than the one we currently have there.
+- The Task Panel sorts tasks chronologically by due date (earliest first).
 - Each task shows a colored icon:
   - 🔴 High
   - 🟠 Medium
@@ -250,7 +252,7 @@ The script includes error handling and will stop with a descriptive message if a
 **Tasks not appearing?**
 - Ensure file has `.md` extension
 - Verify `#task` hashtag is present
-- Check timestamp format matches exactly: `[YYYY/MM/DD HH:MM:SS AM/PM]`
+- If using a timestamp, check format matches exactly: `[YYYY/MM/DD HH:MM:SS AM/PM]`
 - Make sure file doesn't contain `#done`
 
 **Relative dates seem wrong?**

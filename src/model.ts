@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
+import * as path from 'path'; 
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -220,13 +220,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 		
 		// Sort task files by timestamp (chronological order)
-		// Sort by priority (p1 > p2 > p3), then by timestamp
-		const priorityOrder = { p1: 0, p2: 1, p3: 2 };
 		filteredTaskData.sort((a, b) => {
-			const prioDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-			if (prioDiff !== 0) {
-				return prioDiff;
-			}
 			return a.timestamp.getTime() - b.timestamp.getTime();
 		});
 		
@@ -300,17 +294,30 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			const content = await fs.promises.readFile(filePath, 'utf8');
 			
-			// Check for both #task and timestamp pattern, but exclude #done files
+			// Check for #task hashtag, but exclude #done files
 			const hasTaskHashtag = content.includes('#task');
 			const isDoneTask = content.includes('#done');
-			// Updated regex to support both full timestamp and date-only formats
-			const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
-			const timestampMatch = content.match(timestampRegex);
 			
-			// Only include files that have #task, have a timestamp, but don't have #done
-			if (hasTaskHashtag && timestampMatch && !isDoneTask) {
-				const timestampString = timestampMatch[0];
-				const parsedTimestamp = this.parseTimestamp(timestampString);
+			// Only include files that have #task but don't have #done
+			if (hasTaskHashtag && !isDoneTask) {
+				// Look for timestamp, but it's optional now
+				const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
+				const timestampMatch = content.match(timestampRegex);
+				
+				let parsedTimestamp: Date;
+				let timestampString: string;
+				
+				if (timestampMatch) {
+					// Use existing timestamp if found
+					timestampString = timestampMatch[0];
+					const parsed = this.parseTimestamp(timestampString);
+					parsedTimestamp = parsed || new Date(2050, 0, 1, 12, 0, 0); // Fallback to 2050 if parsing fails
+				} else {
+					// No timestamp found, use January 1st, 2050 as default (far future)
+					parsedTimestamp = new Date(2050, 0, 1, 12, 0, 0); // January 1st, 2050 at noon
+					timestampString = `[2050/01/01 12:00:00 PM]`;
+				}
+				
 				// Detect priority
 				let priority: 'p1' | 'p2' | 'p3' = 'p1';
 				if (content.includes('#p2')) {
@@ -318,19 +325,18 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				} else if (content.includes('#p3')) {
 					priority = 'p3';
 				}
-				if (parsedTimestamp) {
-					const fileName = path.basename(filePath);
-					const fileUri = vscode.Uri.file(filePath);
-					const taskFile = new TaskFile(
-						filePath,
-						fileName,
-						fileUri,
-						parsedTimestamp,
-						timestampString,
-						priority
-					);
-					this.taskFileData.push(taskFile);
-				}
+				
+				const fileName = path.basename(filePath);
+				const fileUri = vscode.Uri.file(filePath);
+				const taskFile = new TaskFile(
+					filePath,
+					fileName,
+					fileUri,
+					parsedTimestamp,
+					timestampString,
+					priority
+				);
+				this.taskFileData.push(taskFile);
 			}
 		} catch (error) {
 			console.error(`Error scanning file ${filePath}:`, error);
@@ -414,7 +420,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			return 'Due tomorrow';
 		} else {
 			// Due in future
-			return `Due in ${diffDays} days`;
+			if (diffDays > 365) {
+				return 'Due in over a year';
+			} else {
+				return `Due in ${diffDays} days`;
+			}
 		}
 	}
 }
