@@ -263,9 +263,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 			);
 			
-			// Set context value for far future tasks
-			if (isFarFuture) {
+			// Set context value based on timestamp presence and far future status
+			// Check if task has a real timestamp (not the default 2050 one)
+			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
+			
+			if (isFarFuture && !hasRealTimestamp) {
 				treeItem.contextValue = 'farFutureTask';
+			} else if (hasRealTimestamp) {
+				treeItem.contextValue = 'taskWithTimestamp';
+			} else {
+				treeItem.contextValue = 'taskWithoutTimestamp';
 			}
 			
 			return treeItem;

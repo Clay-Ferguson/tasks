@@ -1,4 +1,4 @@
-// The module 'vscode' contains the VS Code extensibility API
+// The module 'vscode' contains the VS Code extensibility API 
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
@@ -32,6 +32,155 @@ function findFolderByWildcard(workspaceRoot: string, wildcardPattern: string): s
 	}
 
 	return null; // No matching folder found
+}
+
+/**
+ * Adds time to a task's timestamp
+ * @param item The tree item containing the task
+ * @param amount The amount to add (e.g., 1)
+ * @param unit The unit of time ('day', 'week', 'month', 'year')
+ * @param taskProvider The task provider instance to refresh after update
+ */
+async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | 'month' | 'year', taskProvider: TaskProvider): Promise<void> {
+	if (!item || !item.resourceUri) {
+		vscode.window.showErrorMessage('No task selected');
+		return;
+	}
+
+	const filePath = item.resourceUri.fsPath;
+	
+	try {
+		// Read the file content
+		const content = fs.readFileSync(filePath, 'utf8');
+		
+		// Find existing timestamp
+		const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
+		const timestampMatch = content.match(timestampRegex);
+		
+		if (!timestampMatch) {
+			vscode.window.showErrorMessage('No timestamp found in task file');
+			return;
+		}
+		
+		const currentTimestampString = timestampMatch[0];
+		
+		// Detect if the original timestamp was in long format (with time) or short format (date-only)
+		const cleanTimestamp = currentTimestampString.replace(/[\[\]]/g, '');
+		const isLongFormat = cleanTimestamp.includes(' ') && cleanTimestamp.includes(':');
+		
+		// Parse the current timestamp
+		const parsedDate = parseTimestamp(currentTimestampString);
+		if (!parsedDate) {
+			vscode.window.showErrorMessage('Unable to parse timestamp');
+			return;
+		}
+		
+		// Add the specified amount of time
+		const newDate = new Date(parsedDate);
+		switch (unit) {
+			case 'day':
+				newDate.setDate(newDate.getDate() + amount);
+				break;
+			case 'week':
+				newDate.setDate(newDate.getDate() + (amount * 7));
+				break;
+			case 'month':
+				newDate.setMonth(newDate.getMonth() + amount);
+				break;
+			case 'year':
+				newDate.setFullYear(newDate.getFullYear() + amount);
+				break;
+		}
+		
+		// Format the new timestamp based on original format
+		const year = newDate.getFullYear();
+		const month = String(newDate.getMonth() + 1).padStart(2, '0');
+		const day = String(newDate.getDate()).padStart(2, '0');
+		
+		let newTimestampString: string;
+		if (isLongFormat) {
+			// Preserve long format with time
+			const hours12 = newDate.getHours() % 12 || 12;
+			const minutes = String(newDate.getMinutes()).padStart(2, '0');
+			const seconds = String(newDate.getSeconds()).padStart(2, '0');
+			const ampm = newDate.getHours() >= 12 ? 'PM' : 'AM';
+			newTimestampString = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+		} else {
+			// Preserve short format (date-only)
+			newTimestampString = `[${year}/${month}/${day}]`;
+		}
+		
+		// Replace the timestamp in the file content
+		const newContent = content.replace(currentTimestampString, newTimestampString);
+		
+		// Write the updated content back to the file
+		fs.writeFileSync(filePath, newContent, 'utf8');
+		
+		// Refresh the task view
+		taskProvider.refresh();
+		
+		vscode.window.showInformationMessage(`Added ${amount} ${unit}${amount > 1 ? 's' : ''} to task due date`);
+		
+	} catch (error) {
+		vscode.window.showErrorMessage(`Failed to update task: ${error}`);
+	}
+}
+
+/**
+ * Parses a timestamp string into a Date object
+ * @param timestampString The timestamp string to parse
+ * @returns Date object or null if parsing failed
+ */
+function parseTimestamp(timestampString: string): Date | null {
+	try {
+		// Remove brackets and parse the timestamp
+		const cleanTimestamp = timestampString.replace(/[\[\]]/g, '');
+		
+		// Check if this is a date-only format (YYYY/MM/DD) or full format
+		if (cleanTimestamp.match(/^20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9]$/)) {
+			// Date-only format: assume 12:00 PM (noon)
+			const dateComponents = cleanTimestamp.split('/');
+			const year = dateComponents[0];
+			const month = dateComponents[1];
+			const day = dateComponents[2];
+			
+			// Create date string with noon time
+			const dateString = `${month}/${day}/${year} 12:00:00 PM`;
+			const date = new Date(dateString);
+			
+			// Validate the date
+			if (isNaN(date.getTime())) {
+				return null;
+			}
+			
+			return date;
+		} else {
+			// Full timestamp format: YYYY/MM/DD HH:MM:SS AM/PM
+			const parts = cleanTimestamp.split(' ');
+			const datePart = parts[0]; // YYYY/MM/DD
+			const timePart = parts[1]; // HH:MM:SS
+			const ampm = parts[2]; // AM/PM
+			
+			const dateComponents = datePart.split('/');
+			const year = dateComponents[0];
+			const month = dateComponents[1];
+			const day = dateComponents[2];
+			
+			// Reformat to MM/DD/YYYY for Date parsing
+			const dateString = `${month}/${day}/${year} ${timePart} ${ampm}`;
+			const date = new Date(dateString);
+			
+			// Validate the date
+			if (isNaN(date.getTime())) {
+				return null;
+			}
+			
+			return date;
+		}
+	} catch (error) {
+		console.error(`Error parsing timestamp ${timestampString}:`, error);
+		return null;
+	}
 }
 
 // This method is called when your extension is activated
@@ -219,6 +368,23 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Date extension commands
+	const addDayCommand = vscode.commands.registerCommand('task-manager.addDay', async (item) => {
+		await addTimeToTask(item, 1, 'day', taskProvider);
+	});
+
+	const addWeekCommand = vscode.commands.registerCommand('task-manager.addWeek', async (item) => {
+		await addTimeToTask(item, 1, 'week', taskProvider);
+	});
+
+	const addMonthCommand = vscode.commands.registerCommand('task-manager.addMonth', async (item) => {
+		await addTimeToTask(item, 1, 'month', taskProvider);
+	});
+
+	const addYearCommand = vscode.commands.registerCommand('task-manager.addYear', async (item) => {
+		await addTimeToTask(item, 1, 'year', taskProvider);
+	});
+
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(showAllTasksCommand);
@@ -228,6 +394,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(filterPriorityCommand);
 	context.subscriptions.push(newTaskCommand);
 	context.subscriptions.push(aboutCommand);
+	context.subscriptions.push(addDayCommand);
+	context.subscriptions.push(addWeekCommand);
+	context.subscriptions.push(addMonthCommand);
+	context.subscriptions.push(addYearCommand);
 }
 
 // This method is called when your extension is deactivated

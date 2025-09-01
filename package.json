@@ -56,6 +56,22 @@
         "command": "task-manager.about",
         "title": "About...",
         "icon": "$(info)"
+      },
+      {
+        "command": "task-manager.addDay",
+        "title": "+Day"
+      },
+      {
+        "command": "task-manager.addWeek",
+        "title": "+Week"
+      },
+      {
+        "command": "task-manager.addMonth",
+        "title": "+Month"
+      },
+      {
+        "command": "task-manager.addYear",
+        "title": "+Year"
       }
     ],
     "views": {
@@ -117,9 +133,29 @@
       ],
       "view/item/context": [
         {
+          "command": "task-manager.addDay",
+          "when": "view == taskExplorer && viewItem == taskWithTimestamp",
+          "group": "1_dateExtension@1"
+        },
+        {
+          "command": "task-manager.addWeek",
+          "when": "view == taskExplorer && viewItem == taskWithTimestamp",
+          "group": "1_dateExtension@2"
+        },
+        {
+          "command": "task-manager.addMonth",
+          "when": "view == taskExplorer && viewItem == taskWithTimestamp",
+          "group": "1_dateExtension@3"
+        },
+        {
+          "command": "task-manager.addYear",
+          "when": "view == taskExplorer && viewItem == taskWithTimestamp",
+          "group": "1_dateExtension@4"
+        },
+        {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
-          "group": "1_about@1"
+          "group": "2_about@1"
         }
       ],
       "commandPalette": [
