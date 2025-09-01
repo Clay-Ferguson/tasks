@@ -116,20 +116,27 @@ This is the quickest way to create a new task - just click the + button and star
 
 ### Task Display Format
 
-Tasks appear in the panel showing the task description and relative due date:
+Tasks appear in the panel with a compact format showing days until due date in parentheses:
 ```
-[emoji] [task description] - [relative date]
+[emoji] ([days]) [task description]
 ```
+
+The days indicator shows:
+- **Positive numbers**: Days until due date (e.g., `(5)` = due in 5 days)
+- **Zero**: Due today (`(0)`)
+- **Negative numbers**: Days overdue (e.g., `(-3)` = 3 days overdue)
+- **Question mark**: No due date specified (`(?)`)
 
 The task description is either:
 - The first non-blank line from the file (with leading # symbols removed), OR
 - The filename (without .md extension) if the file contains only a task marker and/or timestamp
 
 **Examples:**
-- `📅 Finish quarterly report - Due tomorrow`
-- `📅 Review meeting notes - Due in 3 days`
-- `⚠️ Update budget - 2 days overdue`
-- `📅 Fix login bug - Due today`
+- `� (1) Finish quarterly report` - Due tomorrow
+- `� (5) Review meeting notes` - Due in 5 days  
+- `🔴⚠️ (-2) Update budget` - 2 days overdue
+- `� (0) Fix login bug` - Due today
+- `🔴 (?) Plan vacation` - No due date specified
 
 ### Filtering Options
 
@@ -197,9 +204,9 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
 
 **Example:**
 ```
-🔴⚠️ Finish urgent report - 2 days overdue
-🟠 Review documentation - Due tomorrow
-🔵 Update website - Due in 5 days
+🔴⚠️ (-2) Finish urgent report
+🟠 (1) Review documentation  
+🔵 (5) Update website
 ```
 
 Just add the appropriate hashtag anywhere in your markdown file to set its priority.

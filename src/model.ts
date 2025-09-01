@@ -222,7 +222,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		
 		// Create tree items from sorted task files (same logic as scanForTaskFiles)
 		this.taskFiles = filteredTaskData.map(taskFile => {
-			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
+			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
@@ -238,10 +238,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 			
 			const displayText = this.getFileDisplayText(taskFile.filePath);
+			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue
-				? `${icon}⚠️ ${displayText} - ${relativeDate}`
-				: `${icon} ${displayText} - ${relativeDate}`;
+				? `${icon}⚠️ (${daysDiff}) ${displayText}`
+				: `${icon} (${daysDiff}) ${displayText}`;
 			
 			const treeItem = new TaskFileItem(
 				label,
@@ -415,7 +416,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		
 		// Create tree items from sorted task files
 		this.taskFiles = filteredTaskData.map(taskFile => {
-			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
+			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
@@ -431,10 +432,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 			
 			const displayText = this.getFileDisplayText(taskFile.filePath);
+			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue
-				? `${icon}⚠️ ${displayText} - ${relativeDate}`
-				: `${icon} ${displayText} - ${relativeDate}`;
+				? `${icon}⚠️ (${daysDiff}) ${displayText}`
+				: `${icon} (${daysDiff}) ${displayText}`;
 			
 			const treeItem = new TaskFileItem(
 				label,
@@ -636,6 +638,23 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				return `Due in ${diffDays} days`;
 			}
 		}
+	}
+
+	private getDaysDifference(taskDate: Date): number | string {
+		// Check if this is a task without a real timestamp (defaulted to 2050)
+		if (taskDate.getFullYear() >= 2050) {
+			return '?';
+		}
+		
+		const now = new Date();
+		// Reset time to beginning of day for accurate day comparison
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+		
+		const diffMs = taskDay.getTime() - today.getTime();
+		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+		
+		return diffDays;
 	}
 
 	private isFarFuture(taskDate: Date): boolean {
