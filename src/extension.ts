@@ -116,8 +116,8 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		// Write the updated content back to the file
 		fs.writeFileSync(filePath, newContent, 'utf8');
 		
-		// Refresh the task view
-		taskProvider.refresh();
+		// Update just this single task instead of refreshing the entire view
+		await taskProvider.updateSingleTask(filePath, newTimestampString);
 		
 		vscode.window.showInformationMessage(`Added ${amount} ${unit}${amount > 1 ? 's' : ''} to task due date`);
 		

@@ -94,6 +94,185 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.updateTreeViewTitle(); // Set initial title
 	}
 
+	/**
+	 * Updates a single task item after its timestamp has been modified
+	 * This is more efficient than a full refresh for single item updates
+	 * @param filePath The absolute path of the file that was updated
+	 * @param newTimestampString The new timestamp string in the file
+	 */
+	async updateSingleTask(filePath: string, newTimestampString: string): Promise<void> {
+		try {
+			// Find the task in our data
+			const taskIndex = this.taskFileData.findIndex(task => task.filePath === filePath);
+			if (taskIndex === -1) {
+				// Task not found, fall back to full refresh
+				this.refresh();
+				return;
+			}
+
+			// Parse the new timestamp
+			const newTimestamp = this.parseTimestamp(newTimestampString);
+			if (!newTimestamp) {
+				// Failed to parse, fall back to full refresh
+				this.refresh();
+				return;
+			}
+
+			// Re-read the file to get updated priority and content
+			const content = fs.readFileSync(filePath, 'utf8');
+			let priority: 'p1' | 'p2' | 'p3' = 'p1';
+			if (content.includes('#p2')) {
+				priority = 'p2';
+			} else if (content.includes('#p3')) {
+				priority = 'p3';
+			}
+
+			// Update the task data
+			const oldTask = this.taskFileData[taskIndex];
+			const updatedTask = new TaskFile(
+				oldTask.filePath,
+				oldTask.fileName,
+				oldTask.fileUri,
+				newTimestamp,
+				newTimestampString,
+				priority
+			);
+			this.taskFileData[taskIndex] = updatedTask;
+
+			// Re-build the task files display (similar to scanForTaskFiles but without scanning)
+			await this.rebuildTaskDisplay();
+			
+			// Fire the tree data change event
+			this._onDidChangeTreeData.fire();
+
+			// Highlight the updated item
+			await this.highlightUpdatedTask(filePath);
+
+		} catch (error) {
+			console.error('Error updating single task:', error);
+			// Fall back to full refresh on error
+			this.refresh();
+		}
+	}
+
+	/**
+	 * Highlights and selects the specified task item in the tree view
+	 * @param filePath The absolute path of the file to highlight
+	 */
+	private async highlightUpdatedTask(filePath: string): Promise<void> {
+		if (!this.treeView) {
+			return;
+		}
+
+		try {
+			const updatedTreeItem = this.taskFiles.find(item => 
+				item.resourceUri.fsPath === filePath
+			);
+			
+			if (updatedTreeItem) {
+				// Reveal and select the updated item
+				await this.treeView.reveal(updatedTreeItem, { 
+					select: true, 
+					focus: false, 
+					expand: false 
+				});
+			}
+		} catch (error) {
+			console.error('Error highlighting updated task:', error);
+			// Don't throw - this is just a UX enhancement
+		}
+	}
+
+	/**
+	 * Rebuilds the task display from existing taskFileData without scanning
+	 * This is used by updateSingleTask to avoid a full workspace scan
+	 */
+	private async rebuildTaskDisplay(): Promise<void> {
+		// Apply the same filtering logic as scanForTaskFiles
+		let filteredTaskData = this.taskFileData;
+		const now = new Date();
+		
+		if (this.currentFilter === 'Due Soon') {
+			// Filter by due soon (within 3 days OR overdue)
+			const threeDaysFromNow = new Date();
+			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
+			
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp <= threeDaysFromNow
+			);
+		} else if (this.currentFilter === 'Overdue') {
+			// Filter by overdue only (past due date)
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp < now
+			);
+		}
+
+		// Apply priority filter if not "all"
+		if (this.currentPriorityFilter !== 'all') {
+			filteredTaskData = filteredTaskData.filter(taskFile => 
+				taskFile.priority === this.currentPriorityFilter
+			);
+		}
+		
+		// Sort task files by timestamp (chronological order)
+		filteredTaskData.sort((a, b) => {
+			return a.timestamp.getTime() - b.timestamp.getTime();
+		});
+		
+		// Create tree items from sorted task files (same logic as scanForTaskFiles)
+		this.taskFiles = filteredTaskData.map(taskFile => {
+			const relativeDate = this.getRelativeDateString(taskFile.timestamp);
+			const isOverdue = taskFile.timestamp < now;
+			const isFarFuture = this.isFarFuture(taskFile.timestamp);
+			// Use colored square emoji for both overdue and not overdue, based on priority
+			let icon = '🔴'; // red for p1
+			// Use dimmed/hollow icons for far future tasks
+			if (isFarFuture) {
+				icon = '⚪'; // white for far future
+			}
+			else if (taskFile.priority === 'p2') {
+				icon = '🟠'; // orange for p2
+			} else if (taskFile.priority === 'p3') {
+				icon = '🔵'; // blue for p3
+			}
+			
+			const displayText = this.getFileDisplayText(taskFile.filePath);
+			// For overdue items, show warning icon immediately after priority icon
+			let label = isOverdue
+				? `${icon}⚠️ ${displayText} - ${relativeDate}`
+				: `${icon} ${displayText} - ${relativeDate}`;
+			
+			const treeItem = new TaskFileItem(
+				label,
+				taskFile.fileUri,
+				vscode.TreeItemCollapsibleState.None,
+				{
+					command: 'vscode.open',
+					title: 'Open File',
+					arguments: [taskFile.fileUri]
+				}
+			);
+			
+			// Set context value based on timestamp presence and far future status
+			// Check if task has a real timestamp (not the default 2050 one)
+			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
+			
+			if (isFarFuture && !hasRealTimestamp) {
+				treeItem.contextValue = 'farFutureTask';
+			} else if (hasRealTimestamp) {
+				treeItem.contextValue = 'taskWithTimestamp';
+			} else {
+				treeItem.contextValue = 'taskWithoutTimestamp';
+			}
+			
+			return treeItem;
+		});
+		
+		// Update context to show/hide the tree view
+		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
+	}
+
 	refresh(): void {
 		this.currentFilter = 'All';
 		this.updateTreeViewTitle();
@@ -166,6 +345,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	getTreeItem(element: TaskFileItem): vscode.TreeItem {
 		return element;
+	}
+
+	getParent(element: TaskFileItem): vscode.ProviderResult<TaskFileItem> {
+		// Since our tree is flat (no hierarchy), all items have no parent
+		return null;
 	}
 
 	getChildren(element?: TaskFileItem): Thenable<TaskFileItem[]> {
