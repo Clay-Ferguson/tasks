@@ -100,15 +100,35 @@ export function activate(context: vscode.ExtensionContext) {
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		const rootPath = workspaceFolder.uri.fsPath;
 
+		// Get configured task folder
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const taskFolderSetting = config.get<string>('newTaskFolder', '');
+		
+		// Determine the target folder
+		let targetPath = rootPath;
+		if (taskFolderSetting && taskFolderSetting.trim() !== '') {
+			targetPath = path.join(rootPath, taskFolderSetting.trim());
+			
+			// Create the folder if it doesn't exist
+			if (!fs.existsSync(targetPath)) {
+				try {
+					fs.mkdirSync(targetPath, { recursive: true });
+				} catch (error) {
+					vscode.window.showErrorMessage(`Failed to create task folder: ${error}`);
+					return;
+				}
+			}
+		}
+
 		// Find next available task number
 		let taskNumber = 1;
 		let fileName = `task-${taskNumber.toString().padStart(3, '0')}.md`;
-		let filePath = path.join(rootPath, fileName);
+		let filePath = path.join(targetPath, fileName);
 
 		while (fs.existsSync(filePath)) {
 			taskNumber++;
 			fileName = `task-${taskNumber.toString().padStart(3, '0')}.md`;
-			filePath = path.join(rootPath, fileName);
+			filePath = path.join(targetPath, fileName);
 		}
 
 		// Generate timestamp

@@ -56,6 +56,22 @@ For a cleaner workflow, you can create minimal task files where **the filename i
 
 This is perfect for simple tasks where you don't need additional notes or content - just create a descriptively named file with the task marker and timestamp, and the filename (without the .md extension) will be used as the task description.
 
+### Configuration
+
+The extension supports the following configuration options (accessible via VSCode Settings):
+
+- **`task-manager.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
+  - **Type**: String
+  - **Default**: `""` (workspace root)
+  - **Example values**: `"tasks"`, `"todo"`, `"projects/tasks"`
+  - **Note**: Folder path is relative to workspace root. The folder will be created automatically if it doesn't exist.
+
+To access settings:
+1. Open VSCode Settings (File → Preferences → Settings, or Ctrl+Shift+P then type "Preferences: Open Settings")
+2. Search for "task manager" (not just "tasks" to avoid VSCode's built-in task settings)
+3. Look for "New Task Folder" under the "Task Manager" section
+4. Configure the folder path as needed
+
 ### Supported Hashtags
 
 - **`#task`** - Marks a file as containing a task (required)
@@ -84,12 +100,14 @@ Located in the Tasks panel header:
 - **Function**: Creates a new task file with one click
 - **Behavior**: 
   - Generates a new file named `task-001.md`, `task-002.md`, etc. (auto-increments)
-  - Places file in workspace root directory
+  - Places file in the configured task folder (or workspace root if not configured)
   - Pre-fills with `#task [current timestamp] #p3` format
   - Automatically opens the new file for editing
   - Refreshes the Tasks panel to show the new task
 
 This is the quickest way to create a new task - just click the + button and start typing your task description!
+
+**Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "task manager" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
 #### Right-Click Context Menu
 - **Location**: Any text editor
