@@ -5,6 +5,35 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
 
+/**
+ * Finds a folder in the workspace root that matches a wildcard pattern.
+ * The wildcard is assumed to be a leading asterisk representing a numeric prefix.
+ * @param workspaceRoot The workspace root path
+ * @param wildcardPattern The pattern like "*My Tasks"
+ * @returns The actual folder name if found, or null if not found
+ */
+function findFolderByWildcard(workspaceRoot: string, wildcardPattern: string): string | null {
+	if (!wildcardPattern.startsWith('*')) {
+		return wildcardPattern; // No wildcard, return as-is
+	}
+
+	const suffix = wildcardPattern.substring(1); // Remove the leading asterisk
+	
+	try {
+		const entries = fs.readdirSync(workspaceRoot, { withFileTypes: true });
+		
+		for (const entry of entries) {
+			if (entry.isDirectory() && entry.name.endsWith(suffix)) {
+				return entry.name;
+			}
+		}
+	} catch (error) {
+		console.error('Error scanning workspace root for wildcard folder:', error);
+	}
+
+	return null; // No matching folder found
+}
+
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Tasks extension is now active!'); 
@@ -107,27 +136,44 @@ export function activate(context: vscode.ExtensionContext) {
 		// Determine the target folder
 		let targetPath = rootPath;
 		if (taskFolderSetting && taskFolderSetting.trim() !== '') {
-			targetPath = path.join(rootPath, taskFolderSetting.trim());
+			const folderPattern = taskFolderSetting.trim();
 			
-			// Create the folder if it doesn't exist
-			if (!fs.existsSync(targetPath)) {
+			// Handle wildcard patterns
+			let actualFolderName: string | null;
+			if (folderPattern.startsWith('*')) {
+				actualFolderName = findFolderByWildcard(rootPath, folderPattern);
+				if (!actualFolderName) {
+					vscode.window.showErrorMessage(`No folder found matching pattern: ${folderPattern}`);
+					return;
+				}
+			} else {
+				actualFolderName = folderPattern;
+			}
+			
+			targetPath = path.join(rootPath, actualFolderName);
+			
+			// Create the folder if it doesn't exist (only for non-wildcard folders)
+			if (!folderPattern.startsWith('*') && !fs.existsSync(targetPath)) {
 				try {
 					fs.mkdirSync(targetPath, { recursive: true });
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to create task folder: ${error}`);
 					return;
 				}
+			} else if (folderPattern.startsWith('*') && !fs.existsSync(targetPath)) {
+				vscode.window.showErrorMessage(`Wildcard folder not found: ${actualFolderName}`);
+				return;
 			}
 		}
 
 		// Find next available task number
 		let taskNumber = 1;
-		let fileName = `task-${taskNumber.toString().padStart(3, '0')}.md`;
+		let fileName = `task-${taskNumber.toString().padStart(4, '0')}.md`;
 		let filePath = path.join(targetPath, fileName);
 
 		while (fs.existsSync(filePath)) {
 			taskNumber++;
-			fileName = `task-${taskNumber.toString().padStart(3, '0')}.md`;
+			fileName = `task-${taskNumber.toString().padStart(4, '0')}.md`;
 			filePath = path.join(targetPath, fileName);
 		}
 
