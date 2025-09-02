@@ -35,6 +35,53 @@ function findFolderByWildcard(workspaceRoot: string, wildcardPattern: string): s
 }
 
 /**
+ * Sets up file system watcher for markdown files to automatically update task view
+ */
+function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskProvider): void {
+	// Create a file system watcher for markdown files
+	const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+	
+	// Handle file saves/changes
+	const onChangeDisposable = watcher.onDidChange(async (uri) => {
+		try {
+			// Small delay to ensure file is fully written
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			const filePath = uri.fsPath;
+			const content = await vscode.workspace.fs.readFile(uri);
+			const contentString = Buffer.from(content).toString('utf8');
+			
+			// Check if it's a task file
+			const hasTaskHashtag = contentString.includes('#task');
+			const isDoneTask = contentString.includes('#done');
+			
+			if (hasTaskHashtag && !isDoneTask) {
+				// Look for timestamp in the file
+				const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
+				const timestampMatch = contentString.match(timestampRegex);
+				
+				if (timestampMatch) {
+					// File has timestamp - update it efficiently
+					await taskProvider.updateSingleTask(filePath, timestampMatch[0]);
+				} else {
+					// File doesn't have timestamp - do full refresh (rare case)
+					taskProvider.refresh();
+				}
+			} else {
+				// File is no longer a task - do full refresh to remove it
+				taskProvider.refresh();
+			}
+		} catch (error) {
+			console.error('File watcher error:', error);
+			// On error, just ignore - user can manually refresh if needed
+		}
+	});
+
+	// Add to subscriptions for proper cleanup
+	context.subscriptions.push(watcher, onChangeDisposable);
+}
+
+/**
  * Adds time to a task's timestamp
  * @param item The tree item containing the task
  * @param amount The amount to add (e.g., 1)
@@ -197,6 +244,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Set the tree view reference in the provider
 	taskProvider.setTreeView(treeView);
+
+	// Set up file watcher for automatic updates
+	setupFileWatcher(context, taskProvider);
 
 	// Add visibility listener to trigger initial scan when user first opens the panel
 	let hasScannedOnce = false;
