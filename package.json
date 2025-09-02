@@ -1,8 +1,13 @@
 {
+  "publisher": "Clay-Ferguson",
   "name": "task-manager",
   "displayName": "Tasks",
   "description": "A VSCode extension to manage and display files containing task hashtags",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Clay-Ferguson/tasks.git"
+  },
   "engines": {
     "vscode": "^1.103.0"
   },
