@@ -338,8 +338,8 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		const timestamp = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
 
-		// Create task content
-		const taskContent = `#task ${timestamp} #p3`;
+		// Create task content, with two blank lines because user will want to start editing at beginning of file.
+		const taskContent = `\n\n#task ${timestamp} #p3`;
 
 		try {
 			// Write the file
