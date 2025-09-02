@@ -10,6 +10,7 @@ Tasks scans your workspace for markdown files containing task markers and due da
 
 - **Automatic Task Detection**: Scans all `.md` files in your workspace
 - **Smart Filtering**: Three view modes (All, Due Soon, Overdue)
+- **Task Search**: Find tasks by searching both filenames and file content
 - **Visual Indicators**: Emoji icons show task status at a glance
 - **Relative Date Display**: Shows "Due tomorrow" instead of raw timestamps
 - **Task Completion**: Mark tasks as done to hide them from all views
@@ -95,6 +96,24 @@ Located in the Tasks panel header:
 - **Tasks Due Soon**: Shows tasks due within 3 days + overdue tasks
 - **Tasks Overdue**: Shows only past-due tasks
 
+#### Search Button
+- **Location**: Tasks panel header (🔍 magnifying glass icon)
+- **Function**: Search through task filenames and content
+- **Usage**: 
+  - Click the search icon to open the search input dialog
+  - Enter any text to search for (searches are case-insensitive)
+  - Results show all tasks whose **filenames** or **file content** contain the search text
+  - To clear search results, click the search icon again and submit an empty search
+  - The panel title shows your search query (e.g., "SEARCH - P* - 'bug'")
+  - Any other filter action (All, Due Soon, Overdue, Priority) automatically clears the search
+
+**Search Examples:**
+- Search for `"bug"` - finds files named `fix-login-bug.md` or files containing the word "bug"
+- Search for `"review"` - finds any task with "review" in the filename or content
+- Search for `"2025"` - finds tasks with "2025" in their timestamps or content
+
+This feature is perfect for quickly finding specific tasks in large workspaces without having to browse through all tasks manually.
+
 #### New Task Button
 - **Location**: Tasks panel header (+ icon)
 - **Function**: Creates a new task file with one click
@@ -154,6 +173,24 @@ The task description is either:
 - Shows only tasks past their due date
 - Helps identify what needs immediate attention
 - Items appear with ⚠️ warning icon
+
+#### Search Tasks
+- **Access**: Click the 🔍 search icon in the Tasks panel header
+- **Function**: Find specific tasks by searching filenames and content
+- **Search scope**: 
+  - Task **filenames** (case-insensitive)
+  - Task **file content** (case-insensitive)
+- **Results**: Shows all matching tasks regardless of due date
+- **Clear search**: Submit an empty search query or use any other filter
+- **Visual feedback**: Panel title shows your search query
+
+**Search is particularly useful for:**
+- Finding tasks by keywords (e.g., "meeting", "bug", "review")
+- Locating tasks by project names or client names
+- Filtering by specific dates or time periods
+- Quick access to tasks in large workspaces
+
+**Note**: Search works with your existing task data - it doesn't trigger a new workspace scan, making it very fast even in large projects.
 
 ### Task Lifecycle
 

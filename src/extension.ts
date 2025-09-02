@@ -318,6 +318,26 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	const searchTasksCommand = vscode.commands.registerCommand('task-manager.searchTasks', async () => {
+		const searchQuery = await vscode.window.showInputBox({
+			placeHolder: 'Enter search text...',
+			prompt: 'Search task filenames and content',
+			value: ''
+		});
+
+		if (searchQuery !== undefined) {
+			if (searchQuery.trim() === '') {
+				// Clear search if empty string
+				taskProvider.clearSearch();
+				vscode.window.showInformationMessage('Search cleared');
+			} else {
+				// Perform search
+				taskProvider.searchTasks(searchQuery.trim());
+				vscode.window.showInformationMessage(`Searching for: "${searchQuery.trim()}"`);
+			}
+		}
+	});
+
 	const newTaskCommand = vscode.commands.registerCommand('task-manager.newTask', async () => {
 		// Get the workspace folder
 		if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
@@ -442,6 +462,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(showTasksOverdueCommand);
 	context.subscriptions.push(insertTimestampCommand);
 	context.subscriptions.push(filterPriorityCommand);
+	context.subscriptions.push(searchTasksCommand);
 	context.subscriptions.push(newTaskCommand);
 	context.subscriptions.push(aboutCommand);
 	context.subscriptions.push(addDayCommand);

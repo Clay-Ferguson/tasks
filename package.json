@@ -53,6 +53,11 @@
         "icon": "$(filter)"
       },
       {
+        "command": "task-manager.searchTasks",
+        "title": "Search Tasks",
+        "icon": "$(search)"
+      },
+      {
         "command": "task-manager.newTask",
         "title": "New Task",
         "icon": "$(add)"
@@ -119,9 +124,14 @@
           "group": "navigation@4"
         },
         {
-          "command": "task-manager.newTask",
+          "command": "task-manager.searchTasks",
           "when": "view == taskExplorer",
           "group": "navigation@5"
+        },
+        {
+          "command": "task-manager.newTask",
+          "when": "view == taskExplorer",
+          "group": "navigation@6"
         },
         {
           "command": "task-manager.about",
@@ -172,6 +182,9 @@
         },
         {
           "command": "task-manager.showTasksOverdue"
+        },
+        {
+          "command": "task-manager.searchTasks"
         },
         {
           "command": "task-manager.insertTimestamp"

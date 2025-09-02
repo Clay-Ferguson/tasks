@@ -86,6 +86,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
 	private currentFilter: string = 'All'; // Track current filter state
 	private currentPriorityFilter: string = 'all'; // Track current priority filter
+	private currentSearchQuery: string = ''; // Track current search query
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
 
@@ -276,6 +277,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	refresh(): void {
 		this.currentFilter = 'All';
+		this.currentSearchQuery = ''; // Clear search when refreshing
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -286,6 +288,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	refreshDueSoon(): void {
 		this.currentFilter = 'Due Soon';
+		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(true).then(() => {
@@ -296,6 +299,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	refreshOverdue(): void {
 		this.currentFilter = 'Overdue';
+		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(false, true).then(() => {
@@ -306,9 +310,34 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	filterByPriority(priorityFilter: string): void {
 		this.currentPriorityFilter = priorityFilter;
+		this.currentSearchQuery = ''; // Clear search when changing priority filter
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
+			this.hideScanningIndicator();
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
+	searchTasks(query: string): void {
+		this.currentSearchQuery = query.toLowerCase();
+		this.currentFilter = 'Search';
+		this.updateTreeViewTitle();
+		this.showScanningIndicator();
+		this.applyFiltersToExistingData().then(() => {
+			this.hideScanningIndicator();
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
+	clearSearch(): void {
+		this.currentSearchQuery = '';
+		if (this.currentFilter === 'Search') {
+			this.currentFilter = 'All';
+		}
+		this.updateTreeViewTitle();
+		this.showScanningIndicator();
+		this.applyFiltersToExistingData().then(() => {
 			this.hideScanningIndicator();
 			this._onDidChangeTreeData.fire();
 		});
@@ -340,8 +369,140 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					priorityText = ' - P*';
 					break;
 			}
-			this.treeView.title = `${this.currentFilter.toUpperCase()}${priorityText}`;
+			
+			// Add search query to title if searching
+			let searchText = '';
+			if (this.currentSearchQuery) {
+				searchText = ` - "${this.currentSearchQuery}"`;
+			}
+			
+			this.treeView.title = `${this.currentFilter.toUpperCase()}${priorityText}${searchText}`;
 		}
+	}
+
+	/**
+	 * Applies current filters to existing taskFileData without rescanning
+	 * Used for search and other operations that don't need a full workspace scan
+	 */
+	private async applyFiltersToExistingData(): Promise<void> {
+		// Apply date/time filters first
+		let filteredTaskData = this.taskFileData;
+		const now = new Date();
+		
+		if (this.currentFilter === 'Due Soon') {
+			const threeDaysFromNow = new Date();
+			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+			threeDaysFromNow.setHours(23, 59, 59, 999);
+			
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp <= threeDaysFromNow
+			);
+		} else if (this.currentFilter === 'Overdue') {
+			filteredTaskData = this.taskFileData.filter(taskFile => 
+				taskFile.timestamp < now
+			);
+		}
+
+		// Apply priority filter if not "all"
+		if (this.currentPriorityFilter !== 'all') {
+			filteredTaskData = filteredTaskData.filter(taskFile => 
+				taskFile.priority === this.currentPriorityFilter
+			);
+		}
+		
+		// Apply search filter if there's a search query
+		if (this.currentSearchQuery) {
+			filteredTaskData = await this.filterTasksBySearch(filteredTaskData, this.currentSearchQuery);
+		}
+		
+		// Sort task files by timestamp (chronological order)
+		filteredTaskData.sort((a, b) => {
+			return a.timestamp.getTime() - b.timestamp.getTime();
+		});
+		
+		// Create tree items from filtered task files
+		this.taskFiles = filteredTaskData.map(taskFile => {
+			const daysDiff = this.getDaysDifference(taskFile.timestamp);
+			const isOverdue = taskFile.timestamp < now;
+			const isFarFuture = this.isFarFuture(taskFile.timestamp);
+			
+			// Use colored square emoji for both overdue and not overdue, based on priority
+			let icon = '🔴'; // red for p1
+			// Use dimmed/hollow icons for far future tasks
+			if (isFarFuture) {
+				icon = '⚪'; // white for far future
+			}
+			else if (taskFile.priority === 'p2') {
+				icon = '🟠'; // orange for p2
+			} else if (taskFile.priority === 'p3') {
+				icon = '🔵'; // blue for p3
+			}
+			
+			const displayText = this.getFileDisplayText(taskFile.filePath);
+			// Show days difference in parentheses at the beginning of the task description
+			// For overdue items, show warning icon immediately after priority icon
+			let label = isOverdue
+				? `${icon}⚠️ (${daysDiff}) ${displayText}`
+				: `${icon} (${daysDiff}) ${displayText}`;
+			
+			const treeItem = new TaskFileItem(
+				label,
+				taskFile.fileUri,
+				vscode.TreeItemCollapsibleState.None,
+				{
+					command: 'vscode.open',
+					title: 'Open File',
+					arguments: [taskFile.fileUri]
+				}
+			);
+			
+			// Set context value based on timestamp presence and far future status
+			// Check if task has a real timestamp (not the default 2050 one)
+			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
+			
+			if (isFarFuture && !hasRealTimestamp) {
+				treeItem.contextValue = 'farFutureTask';
+			} else if (hasRealTimestamp) {
+				treeItem.contextValue = 'taskWithTimestamp';
+			} else {
+				treeItem.contextValue = 'taskWithoutTimestamp';
+			}
+			
+			return treeItem;
+		});
+		
+		// Update context to show/hide the tree view
+		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
+	}
+
+	/**
+	 * Filters task files by search query, checking both filename and file content
+	 */
+	private async filterTasksBySearch(taskFiles: TaskFile[], searchQuery: string): Promise<TaskFile[]> {
+		const results: TaskFile[] = [];
+		
+		for (const taskFile of taskFiles) {
+			try {
+				// Check if filename contains search query
+				const fileNameMatch = taskFile.fileName.toLowerCase().includes(searchQuery);
+				
+				// Check if file content contains search query
+				const content = await fs.promises.readFile(taskFile.filePath, 'utf8');
+				const contentMatch = content.toLowerCase().includes(searchQuery);
+				
+				if (fileNameMatch || contentMatch) {
+					results.push(taskFile);
+				}
+			} catch (error) {
+				console.error(`Error reading file during search: ${taskFile.filePath}`, error);
+				// If we can't read the file, include it if filename matches
+				if (taskFile.fileName.toLowerCase().includes(searchQuery)) {
+					results.push(taskFile);
+				}
+			}
+		}
+		
+		return results;
 	}
 
 	getTreeItem(element: TaskFileItem): vscode.TreeItem {
