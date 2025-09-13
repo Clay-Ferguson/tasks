@@ -82,6 +82,11 @@
       {
         "command": "task-manager.addYear",
         "title": "+Year"
+      },
+      {
+        "command": "task-manager.deleteTask",
+        "title": "Delete Task/File",
+        "icon": "$(trash)"
       }
     ],
     "views": {
@@ -168,9 +173,14 @@
           "group": "1_dateExtension@4"
         },
         {
+          "command": "task-manager.deleteTask",
+          "when": "view == taskExplorer",
+          "group": "2_file@1"
+        },
+        {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
-          "group": "2_about@1"
+          "group": "3_about@1"
         }
       ],
       "commandPalette": [
@@ -191,6 +201,9 @@
         },
         {
           "command": "task-manager.newTask"
+        },
+        {
+          "command": "task-manager.deleteTask"
         },
         {
           "command": "task-manager.about"

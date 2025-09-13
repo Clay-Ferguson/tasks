@@ -129,9 +129,25 @@ This is the quickest way to create a new task - just click the + button and star
 **Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "task manager" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
 #### Right-Click Context Menu
+
+**In Text Editor:**
 - **Location**: Any text editor
 - **Option**: "Insert Timestamp"
 - **Function**: Inserts current date/time in the required format at cursor position
+
+**In Tasks Panel:**
+- **Location**: Right-click on any task in the Tasks panel
+- **Options Available**:
+  - **Date Extension Commands**: +Day, +Week, +Month, +Year (for tasks with timestamps)
+  - **Delete Task**: Permanently removes the task file from your workspace
+  - **About**: Shows extension information
+
+**Delete Task Feature:**
+- Right-click any task in the Tasks panel and select "Delete Task"
+- Shows a confirmation dialog before deletion
+- Permanently removes the markdown file from your workspace
+- Automatically refreshes the Tasks panel after deletion
+- **Warning**: This action cannot be undone - the file will be permanently deleted
 
 ### Task Display Format
 

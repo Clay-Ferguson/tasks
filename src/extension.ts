@@ -455,6 +455,38 @@ export function activate(context: vscode.ExtensionContext) {
 		await addTimeToTask(item, 1, 'year', taskProvider);
 	});
 
+	const deleteTaskCommand = vscode.commands.registerCommand('task-manager.deleteTask', async (item) => {
+		if (!item || !item.resourceUri) {
+			vscode.window.showErrorMessage('No task selected');
+			return;
+		}
+
+		const filePath = item.resourceUri.fsPath;
+		const fileName = path.basename(filePath);
+		
+		// Show confirmation dialog
+		const answer = await vscode.window.showWarningMessage(
+			`Are you sure you want to delete the task file "${fileName}"?`,
+			{ modal: true },
+			'Delete',
+			'Cancel'
+		);
+
+		if (answer === 'Delete') {
+			try {
+				// Delete the file
+				await fs.promises.unlink(filePath);
+				
+				// Refresh the task view to remove the deleted item
+				taskProvider.refresh();
+				
+				vscode.window.showInformationMessage(`Task file "${fileName}" has been deleted.`);
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to delete task file: ${error}`);
+			}
+		}
+	});
+
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(showAllTasksCommand);
@@ -469,6 +501,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(addWeekCommand);
 	context.subscriptions.push(addMonthCommand);
 	context.subscriptions.push(addYearCommand);
+	context.subscriptions.push(deleteTaskCommand);
 }
 
 // This method is called when your extension is deactivated
