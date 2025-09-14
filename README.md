@@ -2,6 +2,8 @@
 
 A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[YYYY/MM/DD HH:MM:SS AM/PM]` (or `[YYYY/MM/DD]`) to specify a due date. 
 
+![Task Panel Screenshot](task-panel-screenshot.png)
+
 ## Overview (how it works)
 
 Tasks scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically by due date and include visual indicators for overdue items.
