@@ -2,4 +2,4 @@
 
 The house plants are looking a bit dry. Check soil moisture and water as needed.
 
-#task [2025/09/14 07:00:00 PM] #p3
+#task [09/14/2025 07:00:00 PM] #p3

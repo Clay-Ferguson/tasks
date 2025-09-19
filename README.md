@@ -1,6 +1,6 @@
 # Tasks - VSCode Extension
 
-A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[YYYY/MM/DD HH:MM:SS AM/PM]` (or `[YYYY/MM/DD]`) to specify a due date. 
+A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
@@ -27,7 +27,7 @@ Tasks scans your workspace for markdown files containing task markers and due da
 **Manual Method**: To create a task manually, your markdown file must contain:
 
 1. **Task marker**: `#task` hashtag anywhere in the file
-2. **Due date** (optional): A timestamp in the format `[YYYY/MM/DD HH:MM:SS AM/PM]`
+2. **Due date** (optional): A timestamp in the format `[MM/DD/YYYY HH:MM:SS AM/PM]`
 3. **File extension**: Must be a `.md` (markdown) file
 
 If no timestamp is provided, the task will be treated as a low-priority, far-future task.
@@ -39,7 +39,7 @@ If no timestamp is provided, the task will be treated as a low-priority, far-fut
 Need to finish the quarterly report #task
 
 ## Due Date
-[2025/09/15 05:00:00 PM]
+[09/15/2025 05:00:00 PM]
 
 ## Notes
 - Include sales figures
@@ -54,7 +54,7 @@ For a cleaner workflow, you can create minimal task files where **the filename i
 
 **Example:**
 - **Filename**: `Fix-login-bug.md`
-- **File contents**: `#task [2025/09/15 05:00:00 PM]` (or just `#task`)
+- **File contents**: `#task [09/15/2025 05:00:00 PM]` (or just `#task`)
 - **Result**: Task appears as "Fix login bug" in the panel
 
 This is perfect for simple tasks where you don't need additional notes or content - just create a descriptively named file with the task marker and timestamp, and the filename (without the .md extension) will be used as the task description.
@@ -221,16 +221,14 @@ The task description is either:
 
 **Supported formats**:
 
-1. **Full timestamp**: `[YYYY/MM/DD HH:MM:SS AM/PM]` - for time-specific tasks
-2. **Date-only**: `[YYYY/MM/DD]` - for day-specific tasks (assumes 12:00 PM)
+1. **Full timestamp**: `[MM/DD/YYYY HH:MM:SS AM/PM]` - for time-specific tasks
+2. **Date-only**: `[MM/DD/YYYY]` - for day-specific tasks (assumes 12:00 PM)
 
-**Full timestamp examples:**
-- `[2025/12/25 09:30:00 AM]`
-- `[2025/01/15 11:45:00 PM]`
+**Full timestamp example:**
+- `[12/25/2025 09:30:00 AM]`
 
 **Date-only examples:**
-- `[2025/12/25]` - Due at noon on December 25th
-- `[2025/09/17]` - Due at noon on September 17th
+- `[09/17/2025]` - Due at noon on September 17th
 
 **Inserting timestamps:**
 1. Place cursor where you want the timestamp
@@ -332,7 +330,7 @@ The script includes error handling and will stop with a descriptive message if a
 **Tasks not appearing?**
 - Ensure file has `.md` extension
 - Verify `#task` hashtag is present
-- If using a timestamp, check format matches exactly: `[YYYY/MM/DD HH:MM:SS AM/PM]`
+- If using a timestamp, check format matches exactly: `[MM/DD/YYYY HH:MM:SS AM/PM]`
 - Make sure file doesn't contain `#done`
 
 **Relative dates seem wrong?**

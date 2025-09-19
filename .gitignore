@@ -2,6 +2,7 @@ out
 dist
 node_modules
 .vscode-test/
+attic/
 *.vsix
 tasks-desktop-icon.png
 Tasks.desktop

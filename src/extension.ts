@@ -57,7 +57,8 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			
 			if (hasTaskHashtag && !isDoneTask) {
 				// Look for timestamp in the file
-				const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
+				// Only support new standard [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
+				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
 				const timestampMatch = contentString.match(timestampRegex);
 				
 				if (timestampMatch) {
@@ -101,7 +102,7 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		const content = fs.readFileSync(filePath, 'utf8');
 		
 		// Find existing timestamp
-		const timestampRegex = /\[20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9](?:\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(AM|PM))?\]/;
+		const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
 		const timestampMatch = content.match(timestampRegex);
 		
 		if (!timestampMatch) {
@@ -146,15 +147,15 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		
 		let newTimestampString: string;
 		if (isLongFormat) {
-			// Preserve long format with time
+			// Preserve long format with time (now standard month-first)
 			const hours12 = newDate.getHours() % 12 || 12;
 			const minutes = String(newDate.getMinutes()).padStart(2, '0');
 			const seconds = String(newDate.getSeconds()).padStart(2, '0');
 			const ampm = newDate.getHours() >= 12 ? 'PM' : 'AM';
-			newTimestampString = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+			newTimestampString = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
 		} else {
-			// Preserve short format (date-only)
-			newTimestampString = `[${year}/${month}/${day}]`;
+			// Preserve short format (date-only) in new standard
+			newTimestampString = `[${month}/${day}/${year}]`;
 		}
 		
 		// Replace the timestamp in the file content
@@ -180,50 +181,28 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
  */
 function parseTimestamp(timestampString: string): Date | null {
 	try {
-		// Remove brackets and parse the timestamp
 		const cleanTimestamp = timestampString.replace(/[\[\]]/g, '');
-		
-		// Check if this is a date-only format (YYYY/MM/DD) or full format
-		if (cleanTimestamp.match(/^20[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9]$/)) {
-			// Date-only format: assume 12:00 PM (noon)
-			const dateComponents = cleanTimestamp.split('/');
-			const year = dateComponents[0];
-			const month = dateComponents[1];
-			const day = dateComponents[2];
-			
-			// Create date string with noon time
-			const dateString = `${month}/${day}/${year} 12:00:00 PM`;
-			const date = new Date(dateString);
-			
-			// Validate the date
-			if (isNaN(date.getTime())) {
-				return null;
-			}
-			
-			return date;
-		} else {
-			// Full timestamp format: YYYY/MM/DD HH:MM:SS AM/PM
-			const parts = cleanTimestamp.split(' ');
-			const datePart = parts[0]; // YYYY/MM/DD
-			const timePart = parts[1]; // HH:MM:SS
-			const ampm = parts[2]; // AM/PM
-			
-			const dateComponents = datePart.split('/');
-			const year = dateComponents[0];
-			const month = dateComponents[1];
-			const day = dateComponents[2];
-			
-			// Reformat to MM/DD/YYYY for Date parsing
-			const dateString = `${month}/${day}/${year} ${timePart} ${ampm}`;
-			const date = new Date(dateString);
-			
-			// Validate the date
-			if (isNaN(date.getTime())) {
-				return null;
-			}
-			
-			return date;
+		const parts = cleanTimestamp.split(' ');
+		const datePart = parts[0]; // MM/DD/YYYY
+		let timePart = '12:00:00';
+		let ampmPart = 'PM';
+		if (parts.length === 3) {
+			timePart = parts[1];
+			ampmPart = parts[2];
 		}
+		const comps = datePart.split('/');
+		if (comps.length !== 3 || comps[2].length !== 4) {
+			return null;
+		}
+		const month = comps[0];
+		const day = comps[1];
+		const year = comps[2];
+		const dateString = `${month}/${day}/${year} ${timePart} ${ampmPart}`;
+		const date = new Date(dateString);
+		if (isNaN(date.getTime())) {
+			return null;
+		}
+		return date;
 	} catch (error) {
 		console.error(`Error parsing timestamp ${timestampString}:`, error);
 		return null;
@@ -290,7 +269,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const seconds = String(now.getSeconds()).padStart(2, '0');
 		const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
 		
-		const timestamp = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+		const timestamp = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
 
 		// Insert timestamp at cursor position
 		const position = editor.selection.active;
@@ -406,7 +385,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const seconds = String(now.getSeconds()).padStart(2, '0');
 		const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
 		
-		const timestamp = `[${year}/${month}/${day} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+		const timestamp = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
 
 		// Create task content, with two blank lines because user will want to start editing at beginning of file.
 		const taskContent = `\n\n#task ${timestamp} #p3`;
