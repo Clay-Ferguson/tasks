@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# VSCode Task Extension Build and Install Script
+# 
+# This script automates the complete build and installation process for the 
+# task-ext VSCode extension. It performs the following steps:
+# 1. Installs npm dependencies
+# 2. Compiles the TypeScript source code
+# 3. Packages the extension into a .vsix file using vsce
+# 4. Installs the packaged extension into VS Code
+#
+# The extension provides minimalist task management using markdown files
+# with #task hashtags and timestamps.
+
 # Exit on any error
 set -e
 

@@ -1,12 +1,16 @@
 # Tasks - VSCode Extension
 
-A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hasht**Examples:**
+A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag system. 
+
+**Examples:**
 - `🔴 (1) Finish quarterly report` - Due tomorrow
 - `🟠 (5) Review meeting notes` - Due in 5 days  
 - `🔴⚠️ (-2) Update budget` - 2 days overdue
 - `🟠 (0) Fix login bug` - Due today
 - `🔴 (?) Plan vacation` - No due date specified
-- `✅ (-5) Completed presentation` - Completed task (5 days past due date)ed system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
+- `✅ (-5) Completed presentation` - Completed task (5 days past due date)
+
+A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
@@ -85,6 +89,7 @@ To access settings:
 
 - **`#task`** - Marks a file as containing a task (required)
 - **`#done`** - Marks a task as completed (shows checkmark ✅ icon, hidden by default but can be viewed with completion filters)
+- **`#p1, #p2, #p3`** - High(1), Medium(2), and Low(3) priproty
 
 ### GUI Elements
 
@@ -99,14 +104,7 @@ To access settings:
 - **Content**: List of tasks with relative due dates and status icons
 
 #### Filter Menu
-Located in the Tasks panel header (📋 filter icon):
-- **Function**: Opens a unified dropdown menu for filtering tasks by priority, view type, and completion status
-- **Visual Feedback**: Selected options show checkmarks (✓), unselected options show circle outlines (○)
-- **Three Filter Groups**:
-  - **Priority Filters**: All Priorities, Priority 1 (High), Priority 2 (Medium), Priority 3 (Low)
-  - **View Filters**: All Tasks, Due Soon, Overdue
-  - **Completion Filters**: All Completions, Completed, Not Completed
-- **Usage**: Click the filter icon, then select your desired combination from the dropdown menu
+See the unified Filtering & Search section below for full details; the filter (funnel) icon in the view title opens the filter picker.
 
 #### Search Button
 - **Location**: Tasks panel header (🔍 magnifying glass icon)
@@ -185,51 +183,54 @@ The task description is either:
 - `� (0) Fix login bug` - Due today
 - `🔴 (?) Plan vacation` - No due date specified
 
-### Filtering Options
+### Filtering & Search
 
-The filter menu (📋 icon) provides three types of filters that can be combined:
+The Tasks panel offers a single unified filtering system plus search to refine what you see. All functionality related to filtering and searching is documented here (nowhere else) for simplicity.
 
-#### Priority Filters
-- **All Priorities**: Shows tasks of all priority levels
-- **Priority 1 (High)**: Shows only high-priority tasks (`#p1` or no priority tag)
-- **Priority 2 (Medium)**: Shows only medium-priority tasks (`#p2`)
-- **Priority 3 (Low)**: Shows only low-priority tasks (`#p3`)
+#### Overview
+- Open the filter picker via the filter (funnel) icon (one active choice per group; groups combine).
+- Open search via the 🔍 icon (search text combines with the currently selected filters until cleared).
+- Panel title shows current state (e.g., `Due Soon - P1`, or `SEARCH - P* - 'bug'`).
 
-#### View Filters
-- **All Tasks**: Shows every task file based on completion filter
-- **Due Soon**: Shows tasks due within the next 3 days + all overdue tasks
-- **Overdue**: Shows only tasks past their due date (appear with ⚠️ warning icon)
+#### Filter Groups (10 Options Total)
+1. (Priority) All Priorities – show every priority level
+2. (Priority) Priority 1 (High) – `#p1` or no priority tag
+3. (Priority) Priority 2 (Medium) – `#p2`
+4. (Priority) Priority 3 (Low) – `#p3`
+5. (View) All Tasks – no due-date restriction
+6. (View) Due Soon – due in next 3 days OR already overdue
+7. (View) Overdue – past due date only (⚠️ shown)
+8. (Completion) All Completions – completed + not completed
+9. (Completion) Completed – contains `#done`
+10. (Completion) Not Completed – no `#done` (default)
 
-#### Completion Filters
-- **All Completions**: Shows both completed and incomplete tasks
-- **Completed**: Shows only completed tasks (files containing `#done`)
-- **Not Completed**: Shows only incomplete tasks (files without `#done`) - **Default**
+#### Using Filters
+1. Click the filter (funnel) icon and pick one option in any group; previous selection in that group is replaced.
+2. Combine one selection from each group for precise views (e.g., High + Due Soon + Not Completed).
+3. Changing filters clears any active search automatically.
+4. Overdue tasks always show the warning icon ⚠️; they also appear in Due Soon (by design).
 
-#### How to Use Filters
-1. Click the 📋 filter icon in the Tasks panel header
-2. A dropdown menu appears with three sections: Priority, View, and Completion filters
-3. Selected options show checkmarks (✓), unselected show circle outlines (○)
-4. Click any option to select that filter within its group
-5. Filters work together - you can combine all three types (e.g., "Priority 1" + "Due Soon" + "Completed")
-6. The combination gives you precise control over which tasks are displayed
+#### Search
+| Aspect | Behavior |
+|--------|----------|
+| Trigger | Click 🔍 icon |
+| Scope | Case-insensitive match in filenames and file content |
+| Interaction with Filters | Search results are still constrained by active filters |
+| Clearing | Run search with empty input OR change any filter |
+| Performance | Uses in-memory task data (no full rescan) |
 
-#### Search Tasks
-- **Access**: Click the 🔍 search icon in the Tasks panel header
-- **Function**: Find specific tasks by searching filenames and content
-- **Search scope**: 
-  - Task **filenames** (case-insensitive)
-  - Task **file content** (case-insensitive)
-- **Results**: Shows all matching tasks regardless of due date
-- **Clear search**: Submit an empty search query or use any other filter
-- **Visual feedback**: Panel title shows your search query
+##### Effective Search Use-Cases
+- Locate tasks by keyword (client, feature, bug ID)
+- Narrow to a sprint window by searching a date fragment (e.g., `2025/09`)
+- Combine with Priority 1 to focus critical items containing a term
 
-**Search is particularly useful for:**
-- Finding tasks by keywords (e.g., "meeting", "bug", "review")
-- Locating tasks by project names or client names
-- Filtering by specific dates or time periods
-- Quick access to tasks in large workspaces
+#### Tips
+- If you can’t find a completed task, ensure Completion filter isn’t set to Not Completed.
+- To review only recently urgent items: select Due Soon + Priority 1.
+- Want everything regardless of status? Use All Priorities + All Tasks + All Completions and clear search.
 
-**Note**: Search works with your existing task data - it doesn't trigger a new workspace scan, making it very fast even in large projects.
+#### Rationale
+Overdue tasks are included in Due Soon so that a single glance covers the immediate action horizon (past-due plus next 72 hours) without toggling views.
 
 ### Task Lifecycle
 
@@ -276,7 +277,7 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
   - 🟠 Medium Priority (`#p2`)
   - 🔵 Low Priority (`#p3`)
 - If a task is overdue, a yellow warning icon (⚠️) appears immediately after the priority icon.
-- Use the **Filter Menu** (📋 icon) to show only tasks of specific priority levels.
+- Use the filter system (see Filtering & Search) to show only specific priority levels.
 
 **Example:**
 ```
