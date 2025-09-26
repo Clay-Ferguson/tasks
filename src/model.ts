@@ -279,6 +279,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					arguments: [taskFile.fileUri]
 				}
 			);
+
+			// Enhance tooltip: show label (title), file name, and raw timestamp string each on its own line
+			// Preserve existing label content; file name without path for second line; display original timestamp string
+			const fileNameOnly = path.basename(taskFile.filePath);
+			const timestampLine = taskFile.timestampString;
+			// Use "\n" which VS Code supports for multi-line tooltips
+			treeItem.tooltip = `${label}\n${fileNameOnly}\n${timestampLine}`;
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
@@ -495,6 +502,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					arguments: [taskFile.fileUri]
 				}
 			);
+
+			// Multi-line tooltip (label, file name, timestamp)
+			const fileNameOnly = path.basename(taskFile.filePath);
+			const timestampLine = taskFile.timestampString;
+			treeItem.tooltip = `${label}\n${fileNameOnly}\n${timestampLine}`;
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
@@ -654,6 +666,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					arguments: [taskFile.fileUri]
 				}
 			);
+
+			// Multi-line tooltip (label, file name, timestamp)
+			const fileNameOnly = path.basename(taskFile.filePath);
+			const timestampLine = taskFile.timestampString;
+			treeItem.tooltip = `${label}\n${fileNameOnly}\n${timestampLine}`;
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
