@@ -1,59 +1,65 @@
-# Copilot Instructions for AI Agents
+# AI Agent Guide: Tasks VS Code Extension
 
-## Project Overview
-This is a VSCode extension for minimalist task management using markdown files. Tasks are detected by scanning `.md` files for the `#task` hashtag and a timestamp in `[YYYY/MM/DD HH:MM:SS AM/PM]` or `[YYYY/MM/DD]` format. The extension displays tasks in a panel, sorted and filtered by due date, priority, and completion status.
+Concise, project-specific knowledge to modify this extension safely and productively.
 
-## Key Architectural Concepts
-- **Task Model:** Each task is a markdown file with `#task` and a timestamp. The filename may serve as the description for simple tasks.
-- **Detection Logic:** Only `.md` files with the correct hashtag and timestamp are considered tasks. Files with `#done` are hidden from all views.
-- **Priority:** Tasks can be prioritized using `#p1`, `#p2`, or `#p3` hashtags. Default is high priority if none is present.
-- **Panel UI:** The extension provides filterable views (All, Due Soon, Overdue) and visual status indicators (emoji, color, warning icons).
-- **Timestamp Handling:** Full timestamps and date-only formats are supported. Date-only defaults to noon.
+## Core Purpose
+Lightweight task manager: scans workspace *.md files for `#task` and optional timestamp, renders a filtered tree with priority, due-date proximity, completion state, and search support.
 
-## Developer Workflows
-- **Build:**
-  - `npm install`
-  - `npm run compile`
-- **Test/Debug:**
-  - Press F5 in VSCode for Extension Development Host
-  - Or run: `code --extensionDevelopmentPath=. .`
-- **Package:**
-  - Install CLI: `npm install -g @vscode/vsce`
-  - Build: `vsce package`
-  - Install: `code --install-extension task-manager-0.0.1.vsix`
+## Architecture Snapshot
+- Entry: `src/extension.ts` wires commands, tree view (`taskExplorer`), file watcher, and timestamp adjustment helpers.
+- Data/State: `TaskProvider` in `src/model.ts` holds in‑memory arrays (`taskFileData`, `taskFiles`) + filter state (`currentFilter`, `currentPriorityFilter`, `completionFilter`, `currentSearchQuery`).
+- Model Classes: `TaskFile` (raw metadata) and `TaskFileItem` (TreeItem presentation). No persistence outside markdown files.
+- Update Strategy: Bulk rescans (`scanForTaskFiles`) vs targeted single‑item optimization (`updateSingleTask`) when a timestamp changes.
+- Sentinels: Missing timestamp -> synthetic far‑future date `01/01/2050 12:00:00 PM` (used to compute `?` days + “far future” styling/ filtering logic).
 
-## Note to AI Agents
+## Task Parsing Rules
+- File qualifies only if it contains `#task` and passes completion filter logic.
+- Timestamp optional; regex supports `[MM/DD/YYYY]` or `[MM/DD/YYYY HH:MM:SS AM/PM]` (year must start with `20`).
+- Priority hashtag mapping: default = `p1` unless `#p2` / `#p3` present. `#done` marks completion.
+- Display text: first non-blank line cleaned; if only one non-blank line starting with `#` or `[` then filename (minus numeric/underscore prefix & `.md`) becomes label.
 
-When making changes to the code, you can run `npm run compile` whenever you'd like to, but don't try to create any new markdown files for use during testing, because when we test this app we always do so by running "Run -> Start Debugging" menu option, which will open up a VSCode instance and open a folder outside of this project which is the one we really  use for testing.
+## Filtering & Search Mechanics
+- View filters: All | Due Soon (<= 3 days OR overdue) | Overdue (strict past due). Overdue also appears in Due Soon by design.
+- Priority filter: all | p1 | p2 | p3 (affects listing & tree title suffix `P* / P1 / P2 / P3`).
+- Completion filter: not-completed (default) | completed | all (affects inclusion during scan).
+- Search: filename + file content, case-insensitive, applied over current in‑memory set (no workspace rescan). Clears automatically when changing any filter.
+- Tree title formatting: `${FILTER.toUpperCase()} - P? - "query"` logic in `updateTreeViewTitle()`.
 
-## Project-Specific Patterns
-- **Minimal Task Files:** Filename is used as description if file contains only a task marker/timestamp.
-- **Hashtag Conventions:**
-  - `#task` (required)
-  - `#done` (completed)
-  - `#p1`, `#p2`, `#p3` (priority)
-- **Panel Sorting:** Priority first, then due date. Overdue tasks show warning icon.
-- **Timestamp Insertion:** Use right-click context menu or manually edit for date-only.
+## Performance Considerations
+- Avoid full rescans when only a single timestamp changes: prefer `updateSingleTask` (it re-parses just the file and rebuilds display state).
+- File watcher delays 100ms to avoid partial writes.
+- Far future ( >365 days ) tasks flagged for dim icon; sentinel (2050) always treated as far future.
 
-## Integration Points
-- **VSCode API:** Extension uses VSCode API for UI, file scanning, and context menus.
-- **TypeScript:** All source code is in `src/` and uses TypeScript.
-- **Dependencies:** See `package.json` for required packages.
+## Commands & UI (Sources in `extension.ts`)
+- Filter Picker: `task-manager.filterPriority` builds QuickPick with 3 grouped sections (priority/view/completion) using codicons for check vs circle outline.
+- Search: `task-manager.searchTasks` sets `currentFilter = 'Search'` and uses `applyFiltersToExistingData`.
+- New Task: creates incremented `task-0001.md` etc., inserts two blank lines then `#task [timestamp] #p3`.
+- Date bumpers: `addDay|addWeek|addMonth|addYear` mutate existing timestamp preserving original format length (date-only vs full).
+- Deletion: `task-manager.deleteTask` unlinks file + refresh.
 
-## Key Files
-- `src/extension.ts`: Main extension entry point
-- `src/model.ts`, `src/models.ts`: Task data models and logic
-- `README.md`: User and developer documentation
+## Editing & Testing Workflow
+- Build: `npm install && npm run compile` (outputs to `out/`).
+- Debug: F5 launches Extension Dev Host; do NOT create mock `.md` files inside this repo for behavioral tests—open an external folder (author workflow expectation).
+- Packaging: `vsce package` then install produced `.vsix`.
 
-## Example Task File
-```markdown
-#task [2025/09/15 05:00:00 PM]
-```
+## Implementation Patterns To Preserve
+- Timestamp parsing kept lenient only for specified formats—avoid expanding without updating regex in multiple places (`model.ts`, watcher in `extension.ts`).
+- Always clear `currentSearchQuery` when changing a primary filter (mirrors existing UX).
+- Maintain sentinel date logic if introducing new derived fields; many display branches treat `>=2050` as “no real date”.
+- Filtering order: date subset -> priority -> (optional) search -> sort -> map to TreeItems.
 
-## Troubleshooting
-- Tasks must be in `.md` files with correct hashtag and timestamp
-- Completed tasks (`#done`) are hidden
-- Use provided scripts for build/package/install
+## When Extending
+- Add new filter groups: update QuickPick builder + extend `TaskProvider` state + adjust `updateTreeViewTitle` formatting.
+- Adding metadata per task: parse during `scanFile`, extend `TaskFile`, ensure `updateSingleTask` mirrors logic.
+- Large-scale changes: prefer incremental rebuild functions like `rebuildTaskDisplay` rather than full rescan if possible.
+
+## Gotchas
+- Don’t forget to call `this.hideScanningIndicator()` after async filter/search operations.
+- File duplication guarded by `scannedFiles` Set—clear it on each full scan.
+- Wildcard new-task folder patterns (`*Suffix`) resolved via `findFolderByWildcard` (only leading `*`).
+
+## Example Minimal Task (filename used as label)
+`my-feature.md` contents: `#task [09/30/2025 05:00:00 PM] #p2` ⇒ label derived from filename “my-feature”.
 
 ---
-**Edit this file to add new conventions or update instructions as the project evolves.**
+Keep this file lean; update only with verified conventions found in code. If uncertain, ask for clarification before codifying a rule.

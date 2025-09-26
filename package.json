@@ -59,6 +59,11 @@
         "icon": "$(info)"
       },
       {
+        "command": "task-manager.configureNewTaskFolder",
+        "title": "Folder for New Tasks...",
+        "icon": "$(root-folder)"
+      },
+      {
         "command": "task-manager.addDay",
         "title": "+Day"
       },
@@ -115,12 +120,22 @@
           "group": "navigation@6"
         },
         {
+          "command": "task-manager.configureNewTaskFolder",
+          "when": "view == taskExplorer",
+          "group": "0_settings@1"
+        },
+        {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
           "group": "1_about"
         }
       ],
       "view/context": [
+        {
+          "command": "task-manager.configureNewTaskFolder",
+          "when": "view == taskExplorer",
+          "group": "0_settings@1"
+        },
         {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
@@ -152,11 +167,6 @@
           "command": "task-manager.deleteTask",
           "when": "view == taskExplorer",
           "group": "2_file@1"
-        },
-        {
-          "command": "task-manager.about",
-          "when": "view == taskExplorer",
-          "group": "3_about@1"
         }
       ],
       "commandPalette": [
@@ -183,6 +193,10 @@
         },
         {
           "command": "task-manager.about"
+        }
+        ,
+        {
+          "command": "task-manager.configureNewTaskFolder"
         }
       ],
       "editor/context": [

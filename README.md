@@ -79,6 +79,13 @@ The extension supports the following configuration options (accessible via VSCod
   - **Example values**: `"tasks"`, `"todo"`, `"projects/tasks"`
   - **Note**: Folder path is relative to workspace root. The folder will be created automatically if it doesn't exist.
 
+Quick Access:
+You can also set or change this value without opening Settings via the Tasks panel:
+- Open the Tasks panel, then either:
+  - Click the panel title menu (three dots) and select "Folder for New Tasks...", or
+  - Right‑click inside the Tasks panel (empty space or a task item) and choose "Folder for New Tasks...".
+This opens an input box and updates the `task-manager.newTaskFolder` setting directly.
+
 To access settings:
 1. Open VSCode Settings (File → Preferences → Settings, or Ctrl+Shift+P then type "Preferences: Open Settings")
 2. Search for "task manager" (not just "tasks" to avoid VSCode's built-in task settings)
@@ -148,6 +155,7 @@ This is the quickest way to create a new task - just click the + button and star
 **In Tasks Panel:**
 - **Location**: Right-click on any task in the Tasks panel
 - **Options Available**:
+  - **Folder for New Tasks...**: Quickly set or change the folder path used when creating new tasks via the + button (updates the `task-manager.newTaskFolder` setting)
   - **Date Extension Commands**: +Day, +Week, +Month, +Year (for tasks with timestamps)
   - **Delete Task**: Permanently removes the task file from your workspace
   - **About**: Shows extension information

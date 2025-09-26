@@ -481,6 +481,30 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Command to quickly configure the folder used for new tasks
+	const configureNewTaskFolderCommand = vscode.commands.registerCommand('task-manager.configureNewTaskFolder', async () => {
+		// Read current value
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const current = config.get<string>('newTaskFolder', '');
+
+		const value = await vscode.window.showInputBox({
+			value: current,
+			placeHolder: 'Enter folder relative to workspace root (blank = root). Supports optional leading * wildcard.',
+			prompt: 'Folder where new task files will be created. Will be created if it does not exist (except wildcard).'
+		});
+
+		if (value === undefined) {
+			return; // user cancelled
+		}
+
+		try {
+			await config.update('newTaskFolder', value.trim(), vscode.ConfigurationTarget.Workspace);
+			vscode.window.showInformationMessage(value.trim() === '' ? 'New tasks will now be created in the workspace root.' : `New tasks will now be created in "${value.trim()}".`);
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to update setting: ${err}`);
+		}
+	});
+
 	// Date extension commands
 	const addDayCommand = vscode.commands.registerCommand('task-manager.addDay', async (item) => {
 		await addTimeToTask(item, 1, 'day', taskProvider);
@@ -537,6 +561,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(searchTasksCommand);
 	context.subscriptions.push(newTaskCommand);
 	context.subscriptions.push(aboutCommand);
+	context.subscriptions.push(configureNewTaskFolderCommand);
 	context.subscriptions.push(addDayCommand);
 	context.subscriptions.push(addWeekCommand);
 	context.subscriptions.push(addMonthCommand);
