@@ -55,7 +55,20 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			const hasTaskHashtag = contentString.includes('#task');
 			const isDoneTask = contentString.includes('#done');
 			
-			if (hasTaskHashtag && !isDoneTask) {
+			// Check if task should be included based on completion filter
+			let includeTask = false;
+			if (hasTaskHashtag) {
+				const completionFilter = taskProvider.getCompletionFilter();
+				if (completionFilter === 'all') {
+					includeTask = true;
+				} else if (completionFilter === 'completed') {
+					includeTask = isDoneTask;
+				} else if (completionFilter === 'not-completed') {
+					includeTask = !isDoneTask;
+				}
+			}
+			
+			if (includeTask) {
 				// Look for timestamp in the file
 				// Only support new standard [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
 				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
@@ -224,6 +237,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// Set the tree view reference in the provider
 	taskProvider.setTreeView(treeView);
 
+
+
 	// Set up file watcher for automatic updates
 	setupFileWatcher(context, taskProvider);
 
@@ -237,20 +252,6 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Register commands
-	const showAllTasksCommand = vscode.commands.registerCommand('task-manager.showAllTasks', () => {
-		taskProvider.refresh();
-		vscode.window.showInformationMessage('Scanning for all files containing #task...');
-	});
-
-	const showTasksDueSoonCommand = vscode.commands.registerCommand('task-manager.showTasksDueSoon', () => {
-		taskProvider.refreshDueSoon();
-		vscode.window.showInformationMessage('Scanning for tasks due within 3 days...');
-	});
-
-	const showTasksOverdueCommand = vscode.commands.registerCommand('task-manager.showTasksOverdue', () => {
-		taskProvider.refreshOverdue();
-		vscode.window.showInformationMessage('Scanning for overdue tasks...');
-	});
 
 	const insertTimestampCommand = vscode.commands.registerCommand('task-manager.insertTimestamp', () => {
 		const editor = vscode.window.activeTextEditor;
@@ -281,19 +282,82 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	const filterPriorityCommand = vscode.commands.registerCommand('task-manager.filterPriority', async () => {
+		// Get current filter states to show checkmarks
+		const currentPriority = taskProvider.getCurrentPriorityFilter();
+		const currentView = taskProvider.getCurrentViewFilter();
+		const completionFilter = taskProvider.getCompletionFilter();
+
 		const options = [
-			{ label: 'All Priorities', value: 'all' },
-			{ label: 'Priority 1 (High)', value: 'p1' },
-			{ label: 'Priority 2 (Medium)', value: 'p2' },
-			{ label: 'Priority 3 (Low)', value: 'p3' }
+			// Priority group
+			{ 
+				label: `${currentPriority === 'all' ? '$(check) All Priorities' : '$(circle-outline) All Priorities'}`, 
+				value: 'priority:all' 
+			},
+			{ 
+				label: `${currentPriority === 'p1' ? '$(check) Priority 1 (High)' : '$(circle-outline) Priority 1 (High)'}`, 
+				value: 'priority:p1' 
+			},
+			{ 
+				label: `${currentPriority === 'p2' ? '$(check) Priority 2 (Medium)' : '$(circle-outline) Priority 2 (Medium)'}`, 
+				value: 'priority:p2' 
+			},
+			{ 
+				label: `${currentPriority === 'p3' ? '$(check) Priority 3 (Low)' : '$(circle-outline) Priority 3 (Low)'}`, 
+				value: 'priority:p3' 
+			},
+			// Separator
+			{ label: '', value: 'separator', kind: vscode.QuickPickItemKind.Separator } as any,
+			// View group
+			{ 
+				label: `${currentView === 'All' ? '$(check) All Tasks' : '$(circle-outline) All Tasks'}`, 
+				value: 'view:All' 
+			},
+			{ 
+				label: `${currentView === 'Due Soon' ? '$(check) Due Soon' : '$(circle-outline) Due Soon'}`, 
+				value: 'view:Due Soon' 
+			},
+			{ 
+				label: `${currentView === 'Overdue' ? '$(check) Overdue' : '$(circle-outline) Overdue'}`, 
+				value: 'view:Overdue' 
+			},
+			// Second separator
+			{ label: '', value: 'separator2', kind: vscode.QuickPickItemKind.Separator } as any,
+			// Completion group
+			{ 
+				label: `${completionFilter === 'all' ? '$(check) All Completions' : '$(circle-outline) All Completions'}`, 
+				value: 'completion:all' 
+			},
+			{ 
+				label: `${completionFilter === 'completed' ? '$(check) Completed' : '$(circle-outline) Completed'}`, 
+				value: 'completion:completed' 
+			},
+			{ 
+				label: `${completionFilter === 'not-completed' ? '$(check) Not Completed' : '$(circle-outline) Not Completed'}`, 
+				value: 'completion:not-completed' 
+			}
 		];
 
 		const selected = await vscode.window.showQuickPick(options, {
-			placeHolder: 'Select priority filter'
+			placeHolder: 'Select filter options'
 		});
 
-		if (selected) {
-			taskProvider.filterByPriority(selected.value);
+		if (selected && selected.value !== 'separator' && selected.value !== 'separator2') {
+			const [type, value] = selected.value.split(':');
+			if (type === 'priority') {
+				taskProvider.filterByPriority(value);
+			} else if (type === 'view') {
+				if (value === 'All') {
+					taskProvider.refresh();
+				} else if (value === 'Due Soon') {
+					taskProvider.refreshDueSoon();
+				} else if (value === 'Overdue') {
+					taskProvider.refreshOverdue();
+				}
+			} else if (type === 'completion') {
+				if (value === 'all' || value === 'completed' || value === 'not-completed') {
+					taskProvider.setCompletionFilter(value as 'all' | 'completed' | 'not-completed');
+				}
+			}
 		}
 	});
 
@@ -468,9 +532,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
-	context.subscriptions.push(showAllTasksCommand);
-	context.subscriptions.push(showTasksDueSoonCommand);
-	context.subscriptions.push(showTasksOverdueCommand);
 	context.subscriptions.push(insertTimestampCommand);
 	context.subscriptions.push(filterPriorityCommand);
 	context.subscriptions.push(searchTasksCommand);

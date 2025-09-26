@@ -13,7 +13,8 @@ export class TaskFile {
 		public readonly fileUri: vscode.Uri,
 		public readonly timestamp: Date,
 		public readonly timestampString: string,
-		public readonly priority: 'p1' | 'p2' | 'p3'
+		public readonly priority: 'p1' | 'p2' | 'p3',
+		public readonly isCompleted: boolean = false
 	) {}
 }
 
@@ -87,12 +88,28 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private currentFilter: string = 'All'; // Track current filter state
 	private currentPriorityFilter: string = 'all'; // Track current priority filter
 	private currentSearchQuery: string = ''; // Track current search query
+	private completionFilter: 'all' | 'completed' | 'not-completed' = 'not-completed'; // Track completion filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
+
+
 
 	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
 		this.treeView = treeView;
 		this.updateTreeViewTitle(); // Set initial title
+	}
+
+	// Getter methods for current filter states
+	getCurrentPriorityFilter(): string {
+		return this.currentPriorityFilter;
+	}
+
+	getCurrentViewFilter(): string {
+		return this.currentFilter;
+	}
+
+	getCompletionFilter(): 'all' | 'completed' | 'not-completed' {
+		return this.completionFilter;
 	}
 
 	/**
@@ -130,13 +147,15 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// Update the task data
 			const oldTask = this.taskFileData[taskIndex];
+			const isCompleted = content.includes('#done');
 			const updatedTask = new TaskFile(
 				oldTask.filePath,
 				oldTask.fileName,
 				oldTask.fileUri,
 				newTimestamp,
 				newTimestampString,
-				priority
+				priority,
+				isCompleted
 			);
 			this.taskFileData[taskIndex] = updatedTask;
 
@@ -228,8 +247,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
+			
+			// Use checkmark for completed tasks
+			if (taskFile.isCompleted) {
+				icon = '✅'; // checkmark for completed tasks
+			}
 			// Use dimmed/hollow icons for far future tasks
-			if (isFarFuture) {
+			else if (isFarFuture) {
 				icon = '⚪'; // white for far future
 			}
 			else if (taskFile.priority === 'p2') {
@@ -311,6 +335,17 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	filterByPriority(priorityFilter: string): void {
 		this.currentPriorityFilter = priorityFilter;
 		this.currentSearchQuery = ''; // Clear search when changing priority filter
+		this.updateTreeViewTitle();
+		this.showScanningIndicator();
+		this.scanForTaskFiles().then(() => {
+			this.hideScanningIndicator();
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
+	setCompletionFilter(filter: 'all' | 'completed' | 'not-completed'): void {
+		this.completionFilter = filter;
+		this.currentSearchQuery = ''; // Clear search when changing completed filter
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -428,8 +463,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
+			
+			// Use checkmark for completed tasks
+			if (taskFile.isCompleted) {
+				icon = '✅'; // checkmark for completed tasks
+			}
 			// Use dimmed/hollow icons for far future tasks
-			if (isFarFuture) {
+			else if (isFarFuture) {
 				icon = '⚪'; // white for far future
 			}
 			else if (taskFile.priority === 'p2') {
@@ -582,8 +622,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
+			
+			// Use checkmark for completed tasks
+			if (taskFile.isCompleted) {
+				icon = '✅'; // checkmark for completed tasks
+			}
 			// Use dimmed/hollow icons for far future tasks
-			if (isFarFuture) {
+			else if (isFarFuture) {
 				icon = '⚪'; // white for far future
 			}
 			else if (taskFile.priority === 'p2') {
@@ -672,12 +717,23 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			const content = await fs.promises.readFile(filePath, 'utf8');
 			
-			// Check for #task hashtag, but exclude #done files
+			// Check for #task hashtag, and optionally exclude #done files
 			const hasTaskHashtag = content.includes('#task');
 			const isDoneTask = content.includes('#done');
 			
-			// Only include files that have #task but don't have #done
-			if (hasTaskHashtag && !isDoneTask) {
+			// Include files based on completion filter
+			let includeTask = false;
+			if (hasTaskHashtag) {
+				if (this.completionFilter === 'all') {
+					includeTask = true;
+				} else if (this.completionFilter === 'completed') {
+					includeTask = isDoneTask;
+				} else if (this.completionFilter === 'not-completed') {
+					includeTask = !isDoneTask;
+				}
+			}
+			
+			if (includeTask) {
 				// Look for timestamp, but it's optional now
 				// Only support the new standard format: [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
 				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
@@ -706,6 +762,9 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					priority = 'p3';
 				}
 				
+				// Check if task is completed
+				const isCompleted = isDoneTask;
+				
 				const fileName = path.basename(filePath);
 				const fileUri = vscode.Uri.file(filePath);
 				const taskFile = new TaskFile(
@@ -714,7 +773,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					fileUri,
 					parsedTimestamp,
 					timestampString,
-					priority
+					priority,
+					isCompleted
 				);
 				this.taskFileData.push(taskFile);
 			}

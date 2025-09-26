@@ -1,6 +1,12 @@
 # Tasks - VSCode Extension
 
-A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag-based system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
+A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hasht**Examples:**
+- `🔴 (1) Finish quarterly report` - Due tomorrow
+- `🟠 (5) Review meeting notes` - Due in 5 days  
+- `🔴⚠️ (-2) Update budget` - 2 days overdue
+- `🟠 (0) Fix login bug` - Due today
+- `🔴 (?) Plan vacation` - No due date specified
+- `✅ (-5) Completed presentation` - Completed task (5 days past due date)ed system. A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
@@ -11,7 +17,7 @@ Tasks scans your workspace for markdown files containing task markers and due da
 ## Features
 
 - **Automatic Task Detection**: Scans all `.md` files in your workspace
-- **Smart Filtering**: Three view modes (All, Due Soon, Overdue)
+- **Smart Filtering**: Unified filter menu with priority and view options
 - **Task Search**: Find tasks by searching both filenames and file content
 - **Visual Indicators**: Emoji icons show task status at a glance
 - **Relative Date Display**: Shows "Due tomorrow" instead of raw timestamps
@@ -78,7 +84,7 @@ To access settings:
 ### Supported Hashtags
 
 - **`#task`** - Marks a file as containing a task (required)
-- **`#done`** - Marks a task as completed (hides from all views)
+- **`#done`** - Marks a task as completed (shows checkmark ✅ icon, hidden by default but can be viewed with completion filters)
 
 ### GUI Elements
 
@@ -89,14 +95,18 @@ To access settings:
 
 #### Task Panel
 - **Location**: Left sidebar (when Tasks is active)
-- **Title**: Shows current filter ("All", "Due Soon", or "Overdue")
+- **Title**: Shows current filter combination (e.g., "All Tasks", "Due Soon - P1", "Overdue - P2")
 - **Content**: List of tasks with relative due dates and status icons
 
-#### Filter Buttons
-Located in the Tasks panel header:
-- **All Tasks**: Displays all active tasks
-- **Tasks Due Soon**: Shows tasks due within 3 days + overdue tasks
-- **Tasks Overdue**: Shows only past-due tasks
+#### Filter Menu
+Located in the Tasks panel header (📋 filter icon):
+- **Function**: Opens a unified dropdown menu for filtering tasks by priority, view type, and completion status
+- **Visual Feedback**: Selected options show checkmarks (✓), unselected options show circle outlines (○)
+- **Three Filter Groups**:
+  - **Priority Filters**: All Priorities, Priority 1 (High), Priority 2 (Medium), Priority 3 (Low)
+  - **View Filters**: All Tasks, Due Soon, Overdue
+  - **Completion Filters**: All Completions, Completed, Not Completed
+- **Usage**: Click the filter icon, then select your desired combination from the dropdown menu
 
 #### Search Button
 - **Location**: Tasks panel header (🔍 magnifying glass icon)
@@ -107,7 +117,7 @@ Located in the Tasks panel header:
   - Results show all tasks whose **filenames** or **file content** contain the search text
   - To clear search results, click the search icon again and submit an empty search
   - The panel title shows your search query (e.g., "SEARCH - P* - 'bug'")
-  - Any other filter action (All, Due Soon, Overdue, Priority) automatically clears the search
+  - Any other filter action (using the filter menu) automatically clears the search
 
 **Search Examples:**
 - Search for `"bug"` - finds files named `fix-login-bug.md` or files containing the word "bug"
@@ -177,20 +187,31 @@ The task description is either:
 
 ### Filtering Options
 
-#### All Tasks
-- Shows every task file in the workspace
-- Excludes files marked with `#done`
-- Sorted chronologically by due date (earliest first)
+The filter menu (📋 icon) provides three types of filters that can be combined:
 
-#### Tasks Due Soon
-- Shows tasks due within the next 3 days
-- **Also includes** all overdue tasks
-- Perfect for daily/weekly planning
+#### Priority Filters
+- **All Priorities**: Shows tasks of all priority levels
+- **Priority 1 (High)**: Shows only high-priority tasks (`#p1` or no priority tag)
+- **Priority 2 (Medium)**: Shows only medium-priority tasks (`#p2`)
+- **Priority 3 (Low)**: Shows only low-priority tasks (`#p3`)
 
-#### Tasks Overdue
-- Shows only tasks past their due date
-- Helps identify what needs immediate attention
-- Items appear with ⚠️ warning icon
+#### View Filters
+- **All Tasks**: Shows every task file based on completion filter
+- **Due Soon**: Shows tasks due within the next 3 days + all overdue tasks
+- **Overdue**: Shows only tasks past their due date (appear with ⚠️ warning icon)
+
+#### Completion Filters
+- **All Completions**: Shows both completed and incomplete tasks
+- **Completed**: Shows only completed tasks (files containing `#done`)
+- **Not Completed**: Shows only incomplete tasks (files without `#done`) - **Default**
+
+#### How to Use Filters
+1. Click the 📋 filter icon in the Tasks panel header
+2. A dropdown menu appears with three sections: Priority, View, and Completion filters
+3. Selected options show checkmarks (✓), unselected show circle outlines (○)
+4. Click any option to select that filter within its group
+5. Filters work together - you can combine all three types (e.g., "Priority 1" + "Due Soon" + "Completed")
+6. The combination gives you precise control over which tasks are displayed
 
 #### Search Tasks
 - **Access**: Click the 🔍 search icon in the Tasks panel header
@@ -213,9 +234,10 @@ The task description is either:
 ### Task Lifecycle
 
 1. **Create**: Add `#task` and timestamp to a `.md` file
-2. **Track**: View in Tasks panel with appropriate filter
+2. **Track**: View in Tasks panel with appropriate filters
 3. **Complete**: Add `#done` hashtag to mark as finished
-4. **Archive**: Completed tasks automatically disappear from all views
+4. **Review**: Use completion filters to view completed vs incomplete tasks
+5. **Archive**: Completed tasks are hidden by default but can be viewed using "Completed" or "All Completions" filter
 
 ### Timestamp Format
 
@@ -249,11 +271,12 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
 
 ### How Priorities Work
 - The Task Panel sorts tasks chronologically by due date (earliest first).
-- Each task shows a colored icon:
-  - 🔴 High
-  - 🟠 Medium
-  - 🔵 Low
+- Each task shows a colored icon indicating its priority level:
+  - 🔴 High Priority (`#p1` or no priority tag)
+  - 🟠 Medium Priority (`#p2`)
+  - 🔵 Low Priority (`#p3`)
 - If a task is overdue, a yellow warning icon (⚠️) appears immediately after the priority icon.
+- Use the **Filter Menu** (📋 icon) to show only tasks of specific priority levels.
 
 **Example:**
 ```
@@ -261,6 +284,12 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
 🟠 (1) Review documentation  
 🔵 (5) Update website
 ```
+
+**Priority Filtering**: Click the filter icon in the panel header and select from priority options:
+- **All Priorities**: Shows tasks of all priority levels (default)
+- **Priority 1 (High)**: Shows only high-priority tasks
+- **Priority 2 (Medium)**: Shows only medium-priority tasks  
+- **Priority 3 (Low)**: Shows only low-priority tasks
 
 Just add the appropriate hashtag anywhere in your markdown file to set its priority.
 
@@ -331,7 +360,7 @@ The script includes error handling and will stop with a descriptive message if a
 - Ensure file has `.md` extension
 - Verify `#task` hashtag is present
 - If using a timestamp, check format matches exactly: `[MM/DD/YYYY HH:MM:SS AM/PM]`
-- Make sure file doesn't contain `#done`
+- Check completion filter: by default, completed tasks (`#done`) are hidden - use "All Completions" or "Completed" filter to see them
 
 **Relative dates seem wrong?**
 - Extension uses calendar days, not 24-hour periods
