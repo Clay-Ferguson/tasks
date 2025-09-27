@@ -174,12 +174,6 @@
           "command": "task-manager.showAllTasks"
         },
         {
-          "command": "task-manager.showTasksDueSoon"
-        },
-        {
-          "command": "task-manager.showTasksOverdue"
-        },
-        {
           "command": "task-manager.searchTasks"
         },
         {
@@ -193,8 +187,7 @@
         },
         {
           "command": "task-manager.about"
-        }
-        ,
+        },
         {
           "command": "task-manager.configureNewTaskFolder"
         }
