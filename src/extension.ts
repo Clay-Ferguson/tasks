@@ -522,11 +522,15 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	const aboutCommand = vscode.commands.registerCommand('task-manager.about', async () => {
-		const repoUrl = 'https://github.com/Clay-Ferguson/tasks';
 		try {
-			await vscode.env.openExternal(vscode.Uri.parse(repoUrl));
+			// Get the path to the README.md in the extension's installation directory
+			const extensionPath = context.extensionPath;
+			const readmePath = vscode.Uri.file(path.join(extensionPath, 'README.md'));
+			
+			// Open the README.md file in VS Code's markdown preview
+			await vscode.commands.executeCommand('markdown.showPreview', readmePath);
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to open URL: ${error}`);
+			vscode.window.showErrorMessage(`Failed to open About page: ${error}`);
 		}
 	});
 
