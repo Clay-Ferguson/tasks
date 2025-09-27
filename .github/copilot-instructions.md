@@ -1,65 +1,190 @@
-# AI Agent Guide: Tasks VS Code Extension
+# AI Agent Guide: Timex VS Code Extension
 
-Concise, project-specific knowledge to modify this extension safely and productively.
+Essential knowledge for AI coding agents to be immediately productive in this markdown-based task management extension.
 
 ## Core Purpose
-Lightweight task manager: scans workspace *.md files for `#task` and optional timestamp, renders a filtered tree with priority, due-date proximity, completion state, and search support.
+Lightweight VS Code extension that transforms markdown files into a chronological task manager. Scans workspace for `.md` files containing configurable hashtags (default `#task`), extracts timestamps and priorities, displays them in a filterable tree view with due-date proximity indicators.
 
-## Architecture Snapshot
-- Entry: `src/extension.ts` wires commands, tree view (`taskExplorer`), file watcher, and timestamp adjustment helpers.
-- Data/State: `TaskProvider` in `src/model.ts` holds in‑memory arrays (`taskFileData`, `taskFiles`) + filter state (`currentFilter`, `currentPriorityFilter`, `completionFilter`, `currentSearchQuery`).
-- Model Classes: `TaskFile` (raw metadata) and `TaskFileItem` (TreeItem presentation). No persistence outside markdown files.
-- Update Strategy: Bulk rescans (`scanForTaskFiles`) vs targeted single‑item optimization (`updateSingleTask`) when a timestamp changes.
-- Sentinels: Missing timestamp -> synthetic far‑future date `01/01/2050 12:00:00 PM` (used to compute `?` days + “far future” styling/ filtering logic).
+## Architecture Overview
 
-## Task Parsing Rules
-- File qualifies only if it contains `#task` and passes completion filter logic.
-- Timestamp optional; regex supports `[MM/DD/YYYY]` or `[MM/DD/YYYY HH:MM:SS AM/PM]` (year must start with `20`).
-- Priority hashtag mapping: default = `p1` unless `#p2` / `#p3` present. `#done` marks completion.
-- Display text: first non-blank line cleaned; if only one non-blank line starting with `#` or `[` then filename (minus numeric/underscore prefix & `.md`) becomes label.
+### Entry Point (`src/extension.ts`)
+- **Commands Registration**: 15+ commands from timestamp insertion to task deletion
+- **File Watcher**: Real-time `.md` file monitoring with 100ms debounce
+- **Tree View Setup**: Wires `TaskProvider` to VS Code's tree view API
+- **Timestamp Manipulation**: `addTimeToTask()` preserves original format (date-only vs full datetime)
 
-## Filtering & Search Mechanics
-- View filters: All | Due Soon (<= 3 days OR overdue) | Overdue (strict past due). Overdue also appears in Due Soon by design.
-- Priority filter: all | p1 | p2 | p3 (affects listing & tree title suffix `P* / P1 / P2 / P3`).
-- Completion filter: not-completed (default) | completed | all (affects inclusion during scan).
-- Search: filename + file content, case-insensitive, applied over current in‑memory set (no workspace rescan). Clears automatically when changing any filter.
-- Tree title formatting: `${FILTER.toUpperCase()} - P? - "query"` logic in `updateTreeViewTitle()`.
+### Data Layer (`src/model.ts`)
+- **TaskProvider**: Main data provider implementing `vscode.TreeDataProvider<TaskFileItem>`
+- **TaskFile**: Raw parsed data (filePath, timestamp, priority, completion status)  
+- **TaskFileItem**: VS Code TreeItem with display formatting and tooltips
+- **State Management**: In-memory arrays (`taskFileData`, `taskFiles`) + filter state
+- **Performance Strategy**: `updateSingleTask()` for targeted updates vs full `scanForTaskFiles()`
 
-## Performance Considerations
-- Avoid full rescans when only a single timestamp changes: prefer `updateSingleTask` (it re-parses just the file and rebuilds display state).
-- File watcher delays 100ms to avoid partial writes.
-- Far future ( >365 days ) tasks flagged for dim icon; sentinel (2050) always treated as far future.
+### Configuration (`package.json`)
+Three workspace settings:
+- `task-manager.primaryHashtag`: Active hashtag for filtering (default `#task`)
+- `task-manager.hashtags`: Available hashtags for picker (default `#task, #todo, #note`) 
+- `task-manager.newTaskFolder`: Target folder for new tasks (supports `*wildcard` patterns)
 
-## Commands & UI (Sources in `extension.ts`)
-- Filter Picker: `task-manager.filterPriority` builds QuickPick with 3 grouped sections (priority/view/completion) using codicons for check vs circle outline.
-- Search: `task-manager.searchTasks` sets `currentFilter = 'Search'` and uses `applyFiltersToExistingData`.
-- New Task: creates incremented `task-0001.md` etc., inserts two blank lines then `#task [timestamp] #p3`.
-- Date bumpers: `addDay|addWeek|addMonth|addYear` mutate existing timestamp preserving original format length (date-only vs full).
-- Deletion: `task-manager.deleteTask` unlinks file + refresh.
+## Task File Format Rules
 
-## Editing & Testing Workflow
-- Build: `npm install && npm run compile` (outputs to `out/`).
-- Debug: F5 launches Extension Dev Host; do NOT create mock `.md` files inside this repo for behavioral tests—open an external folder (author workflow expectation).
-- Packaging: `vsce package` then install produced `.vsix`.
+### Recognition Logic
+```markdown
+# Any markdown file containing active primary hashtag is a "task"
+# Files starting with `_` or `.` are ignored
+# Directories: node_modules, .git, .vscode, out, dist, build, .next, target are skipped
 
-## Implementation Patterns To Preserve
-- Timestamp parsing kept lenient only for specified formats—avoid expanding without updating regex in multiple places (`model.ts`, watcher in `extension.ts`).
-- Always clear `currentSearchQuery` when changing a primary filter (mirrors existing UX).
-- Maintain sentinel date logic if introducing new derived fields; many display branches treat `>=2050` as “no real date”.
-- Filtering order: date subset -> priority -> (optional) search -> sort -> map to TreeItems.
+#task [09/30/2025 02:00:00 PM] #p2  # ← This line makes it a task
+Additional content can be anything...
+```
 
-## When Extending
-- Add new filter groups: update QuickPick builder + extend `TaskProvider` state + adjust `updateTreeViewTitle` formatting.
-- Adding metadata per task: parse during `scanFile`, extend `TaskFile`, ensure `updateSingleTask` mirrors logic.
-- Large-scale changes: prefer incremental rebuild functions like `rebuildTaskDisplay` rather than full rescan if possible.
+### Timestamp Parsing
+**Supported formats only:**
+- `[MM/DD/YYYY]` → assumes 12:00 PM same day
+- `[MM/DD/YYYY HH:MM:SS AM/PM]` → exact time
+- **Regex**: `/\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/`
+- Missing timestamp → sentinel date `01/01/2050 12:00:00 PM` (displays as `(?)`)
 
-## Gotchas
-- Don’t forget to call `this.hideScanningIndicator()` after async filter/search operations.
-- File duplication guarded by `scannedFiles` Set—clear it on each full scan.
-- Wildcard new-task folder patterns (`*Suffix`) resolved via `findFolderByWildcard` (only leading `*`).
+### Priority & Status
+- **Priority**: `#p1` (red 🔴), `#p2` (orange 🟠), `#p3` (blue 🔵). No tag = `#p1`
+- **Completion**: `#done` anywhere in file marks completed (✅ icon)
+- **Far Future**: >365 days shows white circle ⚪ (includes sentinel dates)
 
-## Example Minimal Task (filename used as label)
-`my-feature.md` contents: `#task [09/30/2025 05:00:00 PM] #p2` ⇒ label derived from filename “my-feature”.
+### Display Label Logic
+```typescript
+// If file has only hashtags/timestamps, use clean filename as label
+if (nonEmptyLines.length === 1 && (line.startsWith('#') || line.startsWith('['))) {
+    return fileName.replace(/^[\d_]+/, ''); // Strip "0001_" prefixes
+}
+// Otherwise use first non-blank line, cleaned of hashtags
+```
 
----
-Keep this file lean; update only with verified conventions found in code. If uncertain, ask for clarification before codifying a rule.
+## Key Workflow Patterns
+
+### File Watching & Updates
+```typescript
+// Real-time updates via file watcher (extension.ts:setupFileWatcher)
+watcher.onDidChange(async (uri) => {
+    // 100ms delay for file write completion
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Smart update: single task vs full refresh
+    await taskProvider.updateSingleTask(filePath, timestampMatch[0]);
+});
+```
+
+### Filter State Management
+- **Filter combinations**: View (All|Due Soon|Overdue) × Priority (all|p1|p2|p3) × Completion (all|completed|not-completed)
+- **Search overlay**: Filename + content matching, case-insensitive, preserves other filters
+- **State clearing**: Any filter change clears `currentSearchQuery`
+- **Title sync**: `updateTreeViewTitle()` reflects all active filters
+
+### Performance Optimization
+```typescript
+// Prefer targeted updates when possible
+updateSingleTask(filePath, newTimestamp) // Updates one task efficiently  
+vs
+refresh() // Full workspace rescan
+
+// In-memory filtering for search
+applyFiltersToExistingData() // Uses cached taskFileData
+vs  
+scanForTaskFiles() // Filesystem scan + parse
+```
+
+## Development Workflow
+
+### Build & Test
+```bash
+npm install           # Install dependencies
+npm run compile       # TypeScript → out/
+npm run watch         # Auto-rebuild on changes (background task available)
+```
+
+### Debug Setup
+- **F5**: Launch Extension Development Host (clean VS Code instance)
+- **Test Strategy**: Open external workspace folder with `.md` files (don't create test files in this repo)
+- **Extension logs**: Help → Toggle Developer Tools → Console
+
+### Packaging & Distribution
+```bash
+npm install -g @vscode/vsce
+vsce package                    # Creates .vsix file
+code --install-extension timex-0.0.2.vsix
+```
+
+## Critical Implementation Details
+
+### Timestamp Manipulation (`addTimeToTask`)
+Preserves original format when extending dates:
+```typescript
+// Detects original format and maintains it
+const isLongFormat = cleanTimestamp.includes(' ') && cleanTimestamp.includes(':');
+// Long: [MM/DD/YYYY HH:MM:SS AM/PM] 
+// Short: [MM/DD/YYYY]
+```
+
+### Hashtag Switching
+Primary hashtag changes trigger:
+1. `clearPrimaryHashtagCache()` - Invalidates cached config
+2. `refresh()` - Full rescan with new hashtag filter
+3. `updateTreeViewTitle()` - UI title update
+
+### Wildcard Folder Resolution
+```typescript
+// Supports patterns like "*Tasks" → finds "001_My Tasks", "ProjectTasks", etc.
+findFolderByWildcard(workspaceRoot, "*Tasks")
+// Only leading asterisk supported
+```
+
+### Sentinel Date Logic
+Year 2050+ indicates "no real timestamp":
+- Displays as `(?)` in day count
+- Always sorts to bottom
+- Gets far-future icon treatment
+- Used for files without `[MM/DD/YYYY...]` patterns
+
+## Extension Points for New Features
+
+### Adding New Filters
+1. Extend `TaskProvider` filter state properties
+2. Update `filterPriority` command QuickPick options  
+3. Modify `updateTreeViewTitle()` format logic
+4. Implement filter logic in `scanForTaskFiles()` and `applyFiltersToExistingData()`
+
+### New Task Metadata
+1. Parse during `scanFile()` → extend `TaskFile` class
+2. Mirror parsing in `updateSingleTask()` 
+3. Update display logic in tree item creation
+4. Consider impact on sorting and filtering
+
+### Performance Improvements
+Prefer `rebuildTaskDisplay()` pattern over full rescans for operations that only change display/filtering of existing data.
+
+## Common Pitfalls
+
+1. **Regex Updates**: Timestamp parsing regex appears in multiple files—update all locations
+2. **Filter State**: Always clear search query when changing other filters (UX consistency)
+3. **File Watcher**: Don't forget `hideScanningIndicator()` after async operations
+4. **Duplicate Prevention**: `scannedFiles` Set prevents duplicate processing—clear on full scans
+5. **Context Values**: TreeItem `contextValue` controls right-click menu availability (timestamp vs no-timestamp)
+
+## Example Task Files
+
+**Minimal (filename-derived label):**
+```markdown
+#task [09/30/2025 05:00:00 PM] #p2
+```
+
+**Full content:**
+```markdown
+# Fix Login Bug
+
+The login form is not validating email addresses properly.
+
+#task [09/12/2025 02:00:00 PM] #p1
+
+## Steps to reproduce
+- Enter invalid email format  
+- Click login button
+- Page hangs indefinitely
+```
