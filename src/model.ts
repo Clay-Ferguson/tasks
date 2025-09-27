@@ -45,6 +45,38 @@ export class TaskFileItem extends vscode.TreeItem {
 
 // Tree data provider for task files
 export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
+	/**
+	 * Creates a markdown tooltip for a task item
+	 * @param label The task label with icons and formatting
+	 * @param timestampString The raw timestamp string from the file
+	 * @returns A MarkdownString tooltip
+	 */
+	private createTaskTooltip(label: string, timestampString: string): vscode.MarkdownString {
+		const timestampLine = timestampString.replace(/[\[\]]/g, '');
+		const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
+		
+		// Parse the timestamp to get the day of the week
+		// parseTimestamp handles both [MM/DD/YYYY] and [MM/DD/YYYY HH:MM:SS AM/PM] formats
+		const parsedDate = this.parseTimestamp(timestampString);
+		let dayOfWeek = '';
+		
+		if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate.getFullYear() < 2050) {
+			const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+			dayOfWeek = days[parsedDate.getDay()];
+		}
+		
+		const md = new vscode.MarkdownString();
+		md.supportHtml = false;
+		md.isTrusted = false;
+		
+		// Include both timestamp and day of week in the same code block
+		// If no day available, show just the timestamp
+		const codeContent = dayOfWeek ? `${timestampLine} -- ${dayOfWeek}` : timestampLine;
+		md.appendMarkdown(`*\n**${cleaned}**\n\n\`${codeContent}\``);
+		
+		return md;
+	}
+
 	// Extracts the first non-blank line from a file
 	private getFileDisplayText(filePath: string): string {
 		try {
@@ -280,16 +312,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 			);
 
-			// Markdown tooltip: asterisk spacer, bold title, date only (no underline)
-			{
-				const timestampLine = taskFile.timestampString.replace(/[\[\]]/g, '');
-				const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
-				const md = new vscode.MarkdownString();
-				md.supportHtml = false;
-				md.isTrusted = false;
-				md.appendMarkdown(`*\n**${cleaned}**\n\n\`${timestampLine}\``);
-				treeItem.tooltip = md;
-			}
+			// Create markdown tooltip
+			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
@@ -507,16 +531,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 			);
 
-			// Markdown tooltip: asterisk spacer, bold title, date only (no underline)
-			{
-				const timestampLine = taskFile.timestampString.replace(/[\[\]]/g, '');
-				const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
-				const md = new vscode.MarkdownString();
-				md.supportHtml = false;
-				md.isTrusted = false;
-				md.appendMarkdown(`*\n**${cleaned}**\n\n\`${timestampLine}\``);
-				treeItem.tooltip = md;
-			}
+			// Create markdown tooltip
+			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
@@ -677,16 +693,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 			);
 
-			// Markdown tooltip: asterisk spacer, bold title, date only (no underline)
-			{
-				const timestampLine = taskFile.timestampString.replace(/[\[\]]/g, '');
-				const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
-				const md = new vscode.MarkdownString();
-				md.supportHtml = false;
-				md.isTrusted = false;
-				md.appendMarkdown(`*\n**${cleaned}**\n\n\`${timestampLine}\``);
-				treeItem.tooltip = md;
-			}
+			// Create markdown tooltip
+			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
 			
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
