@@ -1,6 +1,6 @@
-# Timex
+# Timex - VSCode Extension
 
-**Use Markdown files as your Calendar/Task Manager**
+**Use Markdown files as your Calendar/Task Manager, in a time-series Panel**
 
 A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
 
