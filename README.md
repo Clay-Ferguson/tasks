@@ -1,8 +1,10 @@
 # Timex
 
-**Use Markdown files as your Calendar, and manage todos**
+**Use Markdown files as your Calendar/Task Manager**
 
 A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
+
+![Task Panel Screenshot](task-panel-screenshot.png)
 
 ## Quick Start (2‑Minute Tour)
 
@@ -49,7 +51,6 @@ Jump to: [Features](#features) · [How to Use](#how-to-use) · [Configuration](#
 
 An “Item” (task / todo / note / reminder) is just a markdown file containing the currently active primary hashtag (default `#task`). Optionally add a timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]` to give it a due date. The file is then auto‑indexed and displayed.
 
-![Task Panel Screenshot](task-panel-screenshot.png)
 
 ## Overview (how it works)
 
