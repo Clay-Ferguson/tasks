@@ -1,6 +1,43 @@
-# Tasks - VSCode Extension
+# Tasks
 
-A minimalist task management extension for VSCode that helps you organize and track tasks directly within your markdown files using a simple hashtag system. 
+**Use Markdown files as your Calendar, and manage todos**
+
+A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed.
+
+## Quick Start (2‑Minute Tour)
+
+Think of this extension as a lightweight, chronological stream of dated (or undated) markdown “items” — more like a rolling time‑aware list than a traditional calendar grid.
+
+1. Create or open a workspace folder.
+2. Click the Activity Bar icon (checklist) to open the panel.
+3. Press the + button: a new file (e.g. `task-0001.md`) appears with a timestamp and `#p3`.
+4. Type a short description under the prefilled line (or just rename the file — filename can become the label).
+5. (Optional) Switch the primary hashtag via the tag icon (e.g. from `#task` to `#note`) to view a different stream.
+6. Use the filter (funnel) icon for Due Soon / Overdue / priority slices; search (🔍) narrows further.
+7. Add or edit timestamps manually or with +Day/+Week/+Month/+Year commands.
+8. Mark something done by adding `#done` anywhere in the file.
+
+You now have a living time series of work: closest due items float to your attention; undated or far‑future items sit quietly at the bottom (sentinel date logic). Switch hashtags to pivot context without noise.
+
+### Minimal Example
+```markdown
+#task [09/30/2025 05:00:00 PM] #p2
+```
+Filename: `plan-sprint.md` → Displays as: `🟠 (3) Plan sprint` (if 3 days out)
+
+### Legend
+- Priority Icons: 🔴 = P1 / 🟠 = P2 / 🔵 = P3 (absence = P1)
+- Days Indicator: `(5)` in 5 days, `(0)` today, `(-2)` overdue by 2, `(?)` no date
+- ⚠️ added after icon if overdue
+- ✅ indicates `#done`
+
+### When to Use This vs a Calendar
+- Need fast capture in plain files, not structured tasks
+- Want sorting + proximity awareness without rigid scheduling
+- Prefer grep‑able, versionable data over proprietary formats
+- Maintain parallel streams (e.g. `#task` for actionable, `#note` for reference, `#idea` for backlog)
+
+Jump to: [Features](#features) · [How to Use](#how-to-use) · [Configuration](#configuration) · [Filtering & Search](#filtering--search)
 
 **Examples:**
 - `🔴 (1) Finish quarterly report` - Due tomorrow
@@ -10,43 +47,51 @@ A minimalist task management extension for VSCode that helps you organize and tr
 - `🔴 (?) Plan vacation` - No due date specified
 - `✅ (-5) Completed presentation` - Completed task (5 days past due date)
 
-A `Task` is simply some action that needs to be done in the future and optionally has a due-date and priority. Each task consists of just a markdown file. Any markdown file that contains the hashtag `#task` is automatically considered as a `Task` by this extension, and will show up in the Extension's Tasks Panel. You can optionally include a timestamp formatted like `[MM/DD/YYYY HH:MM:SS AM/PM]` (or `[MM/DD/YYYY]`) to specify a due date. 
+An “Item” (task / todo / note / reminder) is just a markdown file containing the currently active primary hashtag (default `#task`). Optionally add a timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]` to give it a due date. The file is then auto‑indexed and displayed.
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
 ## Overview (how it works)
 
-Tasks scans your workspace for markdown files containing task markers and due dates, then displays them in an organized, filterable list. Tasks are automatically sorted chronologically by due date and include visual indicators for overdue items.
+The extension scans your workspace for markdown files containing the active primary hashtag, extracts optional due dates, and displays them in a filterable, prioritized list with overdue indicators.
 
 ## Features
 
-- **Automatic Task Detection**: Scans all `.md` files in your workspace
-- **Smart Filtering**: Unified filter menu with priority and view options
-- **Task Search**: Find tasks by searching both filenames and file content
-- **Visual Indicators**: Emoji icons show task status at a glance
-- **Relative Date Display**: Shows "Due tomorrow" instead of raw timestamps
-- **Task Completion**: Mark tasks as done to hide them from all views
-- **Easy Timestamp Insertion**: Right-click to insert properly formatted due dates
+- **Multi‑Hashtag Support**: Configure a comma list (default `#task, #todo, #note`) and switch active context instantly.
+- **Primary Hashtag Selector**: Tag icon opens a picker; selection updates the panel and title bar.
+- **Dynamic Title Bar**: Shows current primary hashtag (e.g. `#todo - ALL - P*`).
+- **Automatic Item Detection**: Scans `.md` files for active hashtag.
+- **Optional Due Dates**: Recognizes `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]`.
+- **Priority Tags**: `#p1 #p2 #p3` with sensible default to `#p1`.
+- **Completion Tag**: `#done` hides items unless included via completion filter.
+- **Unified Filtering**: Priority + temporal (All / Due Soon / Overdue) + completion.
+- **Integrated Search**: Filename + file content, layered atop current filters.
+- **Relative Time Badges**: `(5)`, `(0)`, `(-2)`, `(?)` sentinel for no date.
+- **Quick Create**: + button seeds new file with active hashtag + timestamp + `#p3`.
+- **Timestamp Tools**: Insert current timestamp; add +Day/+Week/+Month/+Year.
 
 ## How to Use
 
-### Creating Tasks
+### Creating Items (Tasks / Notes / Todos)
 
-**Quick Method**: Click the **+** button in the Tasks panel header to instantly create a new task file that's ready to edit.
+Quick: Click **+** in the panel header. A new file is created using the currently active primary hashtag (e.g. `#todo`) plus a timestamp and `#p3` priority.
 
-**Manual Method**: To create a task manually, your markdown file must contain:
+Manual: Create a `.md` file that contains the active primary hashtag somewhere inside. Optionally add a timestamp for due date awareness. Priority + completion + other hashtags are additive.
 
-1. **Task marker**: `#task` hashtag anywhere in the file
-2. **Due date** (optional): A timestamp in the format `[MM/DD/YYYY HH:MM:SS AM/PM]`
-3. **File extension**: Must be a `.md` (markdown) file
+Required minimum for inclusion:
+1. `.md` file
+2. Contains the active primary hashtag (defaults to `#task` until you switch)
 
-If no timestamp is provided, the task will be treated as a low-priority, far-future task.
+Optional enhancements:
+- Timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]`
+- Priority `#p1/#p2/#p3`
+- Completion state `#done`
 
-**Example task file:**
+**Example item file:**
 ```markdown
 # Project Planning
 
-Need to finish the quarterly report #task
+Need to finish the quarterly report #task #p1
 
 ## Due Date
 [09/15/2025 05:00:00 PM]
@@ -56,22 +101,35 @@ Need to finish the quarterly report #task
 - Review with team lead
 ```
 
-*Note that the only important thing about the above example markdown file is that it contains `#task` (making the entire file considered to be a definition of a task). The formatted timestamp is optional but allows you to specify a due date in the specific format shown.*
+Only the presence of the active hashtag matters for indexing. Everything else is optional metadata.
 
-#### Simple Task Files Using Filename as Description
+#### Minimal Filename-Driven Items
 
-For a cleaner workflow, you can create minimal task files where **the filename itself becomes the task description**. This works when your markdown file contains only one non-empty line that starts with either `#` or `[`.
+If the file has only a single non-empty line (starting with `#` or `[`), the filename (sans extension and numeric/underscore prefix) becomes the display label.
 
-**Example:**
-- **Filename**: `Fix-login-bug.md`
-- **File contents**: `#task [09/15/2025 05:00:00 PM]` (or just `#task`)
-- **Result**: Task appears as "Fix login bug" in the panel
+Example:
+- Filename: `fix-login-bug.md`
+- Contents: `#task [09/15/2025 05:00:00 PM]`
+- Result: Appears as “Fix login bug”.
 
-This is perfect for simple tasks where you don't need additional notes or content - just create a descriptively named file with the task marker and timestamp, and the filename (without the .md extension) will be used as the task description.
+Great for ultra-fast capture—just create a descriptively named file with the hashtag.
 
-### Configuration
+## Configuration
 
-The extension supports the following configuration options (accessible via VSCode Settings):
+Settings (File > Preferences > Settings > Extensions > Task Manager):
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `task-manager.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
+| `task-manager.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
+| `task-manager.newTaskFolder` | (empty) | Optional wildcard path for new item files. If starts with `*`, suffix match is used. |
+
+Behavior Notes:
+
+1. Changing `primaryHashtag` triggers a rescan (only files containing the new hashtag are considered items).
+2. The list in `hashtags` does not auto‑switch context; it just feeds the picker.
+3. Remove or add custom hashtags (e.g. `#idea`, `#errand`) without restarting—selector reflects changes immediately.
+4. If `primaryHashtag` is not present in `hashtags`, it is still honored (useful for temporary experiments).
 
 - **`task-manager.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
   - **Type**: String
@@ -80,10 +138,10 @@ The extension supports the following configuration options (accessible via VSCod
   - **Note**: Folder path is relative to workspace root. The folder will be created automatically if it doesn't exist.
 
 Quick Access:
-You can also set or change this value without opening Settings via the Tasks panel:
-- Open the Tasks panel, then either:
+You can also set or change this value without opening Settings via the panel:
+- Open the panel, then either:
   - Click the panel title menu (three dots) and select "Folder for New Tasks...", or
-  - Right‑click inside the Tasks panel (empty space or a task item) and choose "Folder for New Tasks...".
+  - Right‑click inside the panel (empty space or an item) and choose "Folder for New Tasks...".
 This opens an input box and updates the `task-manager.newTaskFolder` setting directly.
 
 To access settings:
@@ -94,35 +152,39 @@ To access settings:
 
 ### Supported Hashtags
 
-- **`#task`** - Marks a file as containing a task (required)
-- **`#done`** - Marks a task as completed (shows checkmark ✅ icon, hidden by default but can be viewed with completion filters)
-- **`#p1, #p2, #p3`** - High(1), Medium(2), and Low(3) priproty
+Core:
+- Active Primary (configurable): marks a file as an actionable item (default `#task`, switchable to any candidate like `#todo`, `#note`, `#idea`).
+- `#done` – Completed item (hidden unless Completion filter includes it).
+- `#p1`, `#p2`, `#p3` – High / Medium / Low priority (absence = treated as `#p1`).
+
+Custom:
+- Add your own in `task-manager.hashtags` (e.g. `#meeting, #research`). Switch via tag icon to focus a specific stream without changing underlying files.
+
+Notes:
+- Only one primary hashtag is active at a time.
+- Items may contain multiple candidate hashtags; only the active one matters for visibility.
+- You can maintain parallel “streams” of work (e.g. planning notes vs action tasks) and jump between them instantly.
 
 ### GUI Elements
 
 #### Activity Bar Icon
-- **Location**: Left sidebar activity bar
-- **Icon**: Checklist symbol
-- **Function**: Opens the Tasks panel
+- Left sidebar; opens the panel.
 
-#### Task Panel
-- **Location**: Left sidebar (when Tasks is active)
-- **Title**: Shows current filter combination (e.g., "All Tasks", "Due Soon - P1", "Overdue - P2")
-- **Content**: List of tasks with relative due dates and status icons
+#### Primary Hashtag Selector (Tag Icon)
+- Location: Panel title bar (leftmost icon with a tag symbol).
+- Action: Opens a QuickPick of configured candidate hashtags (from `task-manager.hashtags`).
+- Behavior: Selecting one updates `task-manager.primaryHashtag`, refreshes the list, and rewrites title bar prefix.
+- Visual: Currently selected hashtag shows a checkmark; others a hollow circle.
+
+#### Items Panel
+- Title: `<primaryHashtag> - <VIEW> - <PRIORITY>` plus search snippet when active.
+- Content: Items derived from files containing the primary hashtag.
 
 #### Filter Menu
-See the unified Filtering & Search section below for full details; the filter (funnel) icon in the view title opens the filter picker.
+Funnel icon; unified picker controlling three orthogonal groups (view / priority / completion). Switching any filter clears active search.
 
 #### Search Button
-- **Location**: Tasks panel header (🔍 magnifying glass icon)
-- **Function**: Search through task filenames and content
-- **Usage**: 
-  - Click the search icon to open the search input dialog
-  - Enter any text to search for (searches are case-insensitive)
-  - Results show all tasks whose **filenames** or **file content** contain the search text
-  - To clear search results, click the search icon again and submit an empty search
-  - The panel title shows your search query (e.g., "SEARCH - P* - 'bug'")
-  - Any other filter action (using the filter menu) automatically clears the search
+- Magnifying glass icon; layered filter on already in-memory items (case-insensitive). Title shows query until cleared.
 
 **Search Examples:**
 - Search for `"bug"` - finds files named `fix-login-bug.md` or files containing the word "bug"
@@ -131,17 +193,10 @@ See the unified Filtering & Search section below for full details; the filter (f
 
 This feature is perfect for quickly finding specific tasks in large workspaces without having to browse through all tasks manually.
 
-#### New Task Button
-- **Location**: Tasks panel header (+ icon)
-- **Function**: Creates a new task file with one click
-- **Behavior**: 
-  - Generates a new file named `task-001.md`, `task-002.md`, etc. (auto-increments)
-  - Places file in the configured task folder (or workspace root if not configured)
-  - Pre-fills with `#task [current timestamp] #p3` format
-  - Automatically opens the new file for editing
-  - Refreshes the Tasks panel to show the new task
+#### New Item Button
+- + icon; creates incrementally numbered file (e.g. `task-0001.md`) in configured folder. Prefills with active hashtag + current timestamp + `#p3`.
 
-This is the quickest way to create a new task - just click the + button and start typing your task description!
+Fastest capture path—click + and start typing.
 
 **Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "task manager" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
@@ -152,8 +207,8 @@ This is the quickest way to create a new task - just click the + button and star
 - **Option**: "Insert Timestamp"
 - **Function**: Inserts current date/time in the required format at cursor position
 
-**In Tasks Panel:**
-- **Location**: Right-click on any task in the Tasks panel
+**In Panel:**
+- **Location**: Right-click on any item in the panel
 - **Options Available**:
   - **Folder for New Tasks...**: Quickly set or change the folder path used when creating new tasks via the + button (updates the `task-manager.newTaskFolder` setting)
   - **Date Extension Commands**: +Day, +Week, +Month, +Year (for tasks with timestamps)
@@ -161,15 +216,15 @@ This is the quickest way to create a new task - just click the + button and star
   - **About**: Shows extension information
 
 **Delete Task Feature:**
-- Right-click any task in the Tasks panel and select "Delete Task"
+- Right-click any item in the panel and select "Delete Task"
 - Shows a confirmation dialog before deletion
 - Permanently removes the markdown file from your workspace
-- Automatically refreshes the Tasks panel after deletion
+- Automatically refreshes the panel after deletion
 - **Warning**: This action cannot be undone - the file will be permanently deleted
 
-### Task Display Format
+### Item Display Format
 
-Tasks appear in the panel with a compact format showing days until due date in parentheses:
+Items appear in the panel with a compact format showing days until due date in parentheses:
 ```
 [emoji] ([days]) [task description]
 ```
@@ -180,9 +235,9 @@ The days indicator shows:
 - **Negative numbers**: Days overdue (e.g., `(-3)` = 3 days overdue)
 - **Question mark**: No due date specified (`(?)`)
 
-The task description is either:
-- The first non-blank line from the file (with leading # symbols removed), OR
-- The filename (without .md extension) if the file contains only a task marker and/or timestamp
+The item description is either:
+- The first non-blank line (leading `#` trimmed), OR
+- The filename (without `.md`) if only hashtag + optional timestamp present.
 
 **Examples:**
 - `� (1) Finish quarterly report` - Due tomorrow
@@ -193,7 +248,7 @@ The task description is either:
 
 ### Filtering & Search
 
-The Tasks panel offers a single unified filtering system plus search to refine what you see. All functionality related to filtering and searching is documented here (nowhere else) for simplicity.
+The panel offers a single unified filtering system plus search to refine what you see. All functionality related to filtering and searching is documented here (nowhere else) for simplicity.
 
 #### Overview
 - Open the filter picker via the filter (funnel) icon (one active choice per group; groups combine).
@@ -240,13 +295,14 @@ The Tasks panel offers a single unified filtering system plus search to refine w
 #### Rationale
 Overdue tasks are included in Due Soon so that a single glance covers the immediate action horizon (past-due plus next 72 hours) without toggling views.
 
-### Task Lifecycle
+### Item Lifecycle
 
-1. **Create**: Add `#task` and timestamp to a `.md` file
-2. **Track**: View in Tasks panel with appropriate filters
-3. **Complete**: Add `#done` hashtag to mark as finished
-4. **Review**: Use completion filters to view completed vs incomplete tasks
-5. **Archive**: Completed tasks are hidden by default but can be viewed using "Completed" or "All Completions" filter
+1. **Create**: Add active primary hashtag to a `.md` file (timestamp optional).
+2. **Track**: Listed under that hashtag’s context.
+3. **Switch Context**: Change primary hashtag to pivot to a different stream (notes vs tasks, etc.).
+4. **Complete**: Add `#done` to archive while keeping history.
+5. **Review**: Use completion filters to surface archived items.
+6. **Iterate**: Bump dates via +Day/+Week/+Month/+Year commands.
 
 ### Timestamp Format
 
@@ -268,24 +324,24 @@ Overdue tasks are included in Due Soon so that a single glance covers the immedi
 
 *Note: The "Insert Timestamp" command always creates full timestamps. For date-only timestamps, you can manually edit to remove the time portion.*
 
-## Task Prioritization
+## Prioritization
 
-You can set a priority for each task file using hashtags:
+Set priority per item using hashtags:
 
 - `#p1` — **High Priority** (red icon)
 - `#p2` — **Medium Priority** (orange icon)
 - `#p3` — **Low Priority** (blue icon)
 
-If no priority hashtag is present, the file is treated as high priority (`#p1`).
+If no priority hashtag is present, treated as high priority (`#p1`).
 
 ### How Priorities Work
-- The Task Panel sorts tasks chronologically by due date (earliest first).
-- Each task shows a colored icon indicating its priority level:
+- The panel sorts items by due date (earliest first; undated sentinel last).
+- Each item shows a colored icon indicating priority:
   - 🔴 High Priority (`#p1` or no priority tag)
   - 🟠 Medium Priority (`#p2`)
   - 🔵 Low Priority (`#p3`)
-- If a task is overdue, a yellow warning icon (⚠️) appears immediately after the priority icon.
-- Use the filter system (see Filtering & Search) to show only specific priority levels.
+- Overdue adds ⚠️ after priority icon.
+- Use filter system to isolate priority levels.
 
 **Example:**
 ```
@@ -294,13 +350,13 @@ If no priority hashtag is present, the file is treated as high priority (`#p1`).
 🔵 (5) Update website
 ```
 
-**Priority Filtering**: Click the filter icon in the panel header and select from priority options:
+**Priority Filtering**: Use the filter icon:
 - **All Priorities**: Shows tasks of all priority levels (default)
 - **Priority 1 (High)**: Shows only high-priority tasks
 - **Priority 2 (Medium)**: Shows only medium-priority tasks  
 - **Priority 3 (Low)**: Shows only low-priority tasks
 
-Just add the appropriate hashtag anywhere in your markdown file to set its priority.
+Add the priority hashtag anywhere inside the file.
 
 ## Developer Information
 
@@ -365,18 +421,22 @@ The script includes error handling and will stop with a descriptive message if a
 
 ## Troubleshooting
 
-**Tasks not appearing?**
-- Ensure file has `.md` extension
-- Verify `#task` hashtag is present
-- If using a timestamp, check format matches exactly: `[MM/DD/YYYY HH:MM:SS AM/PM]`
-- Check completion filter: by default, completed tasks (`#done`) are hidden - use "All Completions" or "Completed" filter to see them
+**Item not appearing?**
+- Confirm active primary hashtag (title bar prefix) matches hashtag inside file.
+- File must be `.md`.
+- Timestamp (if present) must match one of supported formats exactly.
+- Completed item? Change completion filter to All / Completed.
 
-**Relative dates seem wrong?**
-- Extension uses calendar days, not 24-hour periods
-- "Due tomorrow" means due on the next calendar day
+**Changed hashtag list but picker not updated?**
+- Ensure entries are comma-separated; no stray semicolons.
+- Empty tokens are ignored—double commas collapse.
 
-**Extension not loading?**
-- Check VSCode version compatibility
-- Try reloading window (Ctrl+Shift+P → "Reload Window")
-- Check Developer Console for errors
+**Relative days feel off?**
+- Calculations are calendar-day based (midnight boundaries), not 24h rolling windows.
+
+**Primary hashtag title didn’t update after settings edit?**
+- Use the tag icon to re-select, or reload window (command: Reload Window).
+
+**Still stuck?**
+- Open Developer Tools (Help → Toggle Developer Tools) and check console for errors.
 

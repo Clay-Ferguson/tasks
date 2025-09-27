@@ -446,6 +446,9 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	private updateTreeViewTitle(): void {
 		if (this.treeView) {
+			// Get the current primary hashtag for the leftmost part of the title
+			const primaryHashtag = this.getPrimaryHashtag();
+			
 			let priorityText = '';
 			switch (this.currentPriorityFilter) {
 				case 'p1':
@@ -468,7 +471,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				searchText = ` - "${this.currentSearchQuery}"`;
 			}
 			
-			this.treeView.title = `${this.currentFilter.toUpperCase()}${priorityText}${searchText}`;
+			// Format: #hashtag - FILTER - P* - "search"
+			this.treeView.title = `${primaryHashtag} - ${this.currentFilter.toUpperCase()}${priorityText}${searchText}`;
 		}
 	}
 
