@@ -2,7 +2,7 @@
 
 **Use Markdown files as your Calendar, and manage todos**
 
-A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed.
+A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
 
 ## Quick Start (2‑Minute Tour)
 
@@ -53,7 +53,7 @@ An “Item” (task / todo / note / reminder) is just a markdown file containing
 
 ## Overview (how it works)
 
-The extension scans your workspace for markdown files containing the active primary hashtag, extracts optional due dates, and displays them in a filterable, prioritized list with overdue indicators.
+The extension scans your workspace for markdown files containing the active primary hashtag, extracts optional due dates, and displays them in a filterable, prioritized list with overdue indicators. Timex assumes that, When it encounters a file containing. The hashtag `#task` for example, that the entire file represents the definition of that task. So this extension should not be used to manage things like TODOs Where you might have multiple `#todo` hashtags in the same file. This is because this extension assumes that each file represents only one single thing to be tracked. In other words, when your project is scanned, and a tag like `#task` is found in a file, that tells the extension the file itself, is a task definition. 
 
 ## Features
 
