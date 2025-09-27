@@ -225,7 +225,7 @@ function parseTimestamp(timestampString: string): Date | null {
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Tasks extension is now active!'); 
+	console.log('Timex extension is now active!'); 
 
 	// Create the tree data provider
 	const taskProvider = new TaskProvider();

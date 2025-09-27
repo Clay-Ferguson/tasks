@@ -1,9 +1,9 @@
 {
   "publisher": "Clay-Ferguson",
-  "name": "task-manager",
-  "displayName": "Tasks",
-  "description": "A VSCode extension to manage and display files containing task hashtags",
-  "version": "0.0.1",
+  "name": "timex",
+  "displayName": "Timex",
+  "description": "Timex – markdown hashtag time stream (manage #task/#todo/#note items with dates & priorities)",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/Clay-Ferguson/tasks.git"
@@ -18,7 +18,7 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Task Manager",
+      "title": "Timex",
       "properties": {
         "task-manager.newTaskFolder": {
           "type": "string",
@@ -70,7 +70,7 @@
       },
       {
         "command": "task-manager.about",
-        "title": "About...",
+        "title": "About Timex...",
         "icon": "$(info)"
       },
       {
@@ -109,7 +109,7 @@
       "taskManager": [
         {
           "id": "taskExplorer",
-          "name": "Tasks"
+          "name": "Timex"
         }
       ]
     },
@@ -117,7 +117,7 @@
       "activitybar": [
         {
           "id": "taskManager",
-          "title": "Tasks",
+          "title": "Timex",
           "icon": "$(checklist)"
         }
       ]

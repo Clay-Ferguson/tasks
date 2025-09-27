@@ -1,4 +1,4 @@
-# Tasks
+# Timex
 
 **Use Markdown files as your Calendar, and manage todos**
 
@@ -116,7 +116,7 @@ Great for ultra-fast capture—just create a descriptively named file with the h
 
 ## Configuration
 
-Settings (File > Preferences > Settings > Extensions > Task Manager):
+Settings (File > Preferences > Settings > Extensions > Timex):
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -146,8 +146,8 @@ This opens an input box and updates the `task-manager.newTaskFolder` setting dir
 
 To access settings:
 1. Open VSCode Settings (File → Preferences → Settings, or Ctrl+Shift+P then type "Preferences: Open Settings")
-2. Search for "task manager" (not just "tasks" to avoid VSCode's built-in task settings)
-3. Look for "New Task Folder" under the "Task Manager" section
+2. Search for "timex" (or legacy: "task manager")
+3. Look for "New Task Folder" under the "Timex" section
 4. Configure the folder path as needed
 
 ### Supported Hashtags
@@ -198,7 +198,7 @@ This feature is perfect for quickly finding specific tasks in large workspaces w
 
 Fastest capture path—click + and start typing.
 
-**Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "task manager" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
+**Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
 #### Right-Click Context Menu
 
@@ -394,7 +394,7 @@ This creates a `.vsix` file ready for distribution.
 
 3. **Install packaged extension**:
 ```bash
-code --install-extension task-manager-0.0.1.vsix
+code --install-extension timex-0.0.2.vsix
 ```
 
 ### Quick Installation Script
