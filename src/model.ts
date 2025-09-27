@@ -102,8 +102,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 			// Trim and remove leading hashes and whitespace, then remove task-related hashtags
 			let displayText = firstNonBlank.trim().replace(/^#+\s*/, '');
-			// Remove task hashtags (#task, #p1, #p2, #p3, #done) and clean up extra whitespace
-			displayText = displayText.replace(/#(task|p[123]|done)\b/g, '').replace(/\s+/g, ' ').trim();
+			// Get primary hashtag without the # symbol for the regex
+			const primaryHashtagWithoutHash = this.getPrimaryHashtag().substring(1);
+			// Remove task hashtags (primary hashtag, #p1, #p2, #p3, #done) and clean up extra whitespace
+			const taskHashtagPattern = new RegExp(`#(${primaryHashtagWithoutHash}|p[123]|done)\\b`, 'g');
+			displayText = displayText.replace(taskHashtagPattern, '').replace(/\s+/g, ' ').trim();
 			// Trim to maximum of 50 characters
 			displayText = displayText.length > 50 ? displayText.substring(0, 50) + '...' : displayText;
 			return displayText;
@@ -123,8 +126,27 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private completionFilter: 'all' | 'completed' | 'not-completed' = 'not-completed'; // Track completion filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
+	private cachedPrimaryHashtag: string | null = null; // Cache for primary hashtag
 
+	/**
+	 * Gets the current primary hashtag from VSCode workspace configuration
+	 * @returns The primary hashtag string (e.g., "#task")
+	 */
+	getPrimaryHashtag(): string {
+		if (this.cachedPrimaryHashtag === null) {
+			const config = vscode.workspace.getConfiguration('task-manager');
+			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
+		}
+		return this.cachedPrimaryHashtag;
+	}
 
+	/**
+	 * Clears the cached primary hashtag to force reload from configuration
+	 * Call this when the configuration changes
+	 */
+	clearPrimaryHashtagCache(): void {
+		this.cachedPrimaryHashtag = null;
+	}
 
 	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
 		this.treeView = treeView;
@@ -756,13 +778,12 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 			this.scannedFiles.add(filePath);
 
-			const content = await fs.promises.readFile(filePath, 'utf8');
-			
-			// Check for #task hashtag, and optionally exclude #done files
-			const hasTaskHashtag = content.includes('#task');
-			const isDoneTask = content.includes('#done');
-			
-			// Include files based on completion filter
+		const content = await fs.promises.readFile(filePath, 'utf8');
+		
+		// Check for primary hashtag, and optionally exclude #done files
+		const primaryHashtag = this.getPrimaryHashtag();
+		const hasTaskHashtag = content.includes(primaryHashtag);
+		const isDoneTask = content.includes('#done');			// Include files based on completion filter
 			let includeTask = false;
 			if (hasTaskHashtag) {
 				if (this.completionFilter === 'all') {

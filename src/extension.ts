@@ -52,7 +52,8 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			const contentString = Buffer.from(content).toString('utf8');
 			
 			// Check if it's a task file
-			const hasTaskHashtag = contentString.includes('#task');
+			const primaryHashtag = taskProvider.getPrimaryHashtag();
+			const hasTaskHashtag = contentString.includes(primaryHashtag);
 			const isDoneTask = contentString.includes('#done');
 			
 			// Check if task should be included based on completion filter
@@ -242,6 +243,16 @@ export function activate(context: vscode.ExtensionContext) {
 	// Set up file watcher for automatic updates
 	setupFileWatcher(context, taskProvider);
 
+	// Set up configuration change listener to clear primary hashtag cache
+	const configChangeListener = vscode.workspace.onDidChangeConfiguration((event) => {
+		if (event.affectsConfiguration('task-manager.primaryHashtag')) {
+			taskProvider.clearPrimaryHashtagCache();
+			// Refresh the task view to reflect the new primary hashtag
+			taskProvider.refresh();
+		}
+	});
+	context.subscriptions.push(configChangeListener);
+
 	// Add visibility listener to trigger initial scan when user first opens the panel
 	let hasScannedOnce = false;
 	treeView.onDidChangeVisibility((e) => {
@@ -279,6 +290,43 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		vscode.window.showInformationMessage(`Timestamp inserted: ${timestamp}`);
+	});
+
+	const selectPrimaryHashtagCommand = vscode.commands.registerCommand('task-manager.selectPrimaryHashtag', async () => {
+		// Get current configuration
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const currentPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
+		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+		
+		// Parse hashtags from comma-delimited string
+		const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+		
+		// Create options with checkmarks for current selection
+		const options = hashtags.map(hashtag => ({
+			label: `${hashtag === currentPrimaryHashtag ? '$(check)' : '$(circle-outline)'} ${hashtag}`,
+			value: hashtag
+		}));
+
+		const selected = await vscode.window.showQuickPick(options, {
+			placeHolder: 'Select primary hashtag for task identification'
+		});
+
+		if (selected) {
+			try {
+				// Update the primary hashtag configuration
+				await config.update('primaryHashtag', selected.value, vscode.ConfigurationTarget.Workspace);
+				
+				// Clear the cached primary hashtag to force reload
+				taskProvider.clearPrimaryHashtagCache();
+				
+				// Refresh the task view to reflect the new primary hashtag
+				taskProvider.refresh();
+				
+				vscode.window.showInformationMessage(`Primary hashtag set to: ${selected.value}`);
+			} catch (err) {
+				vscode.window.showErrorMessage(`Failed to update primary hashtag: ${err}`);
+			}
+		}
 	});
 
 	const filterPriorityCommand = vscode.commands.registerCommand('task-manager.filterPriority', async () => {
@@ -452,7 +500,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const timestamp = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
 
 		// Create task content, with two blank lines because user will want to start editing at beginning of file.
-		const taskContent = `\n\n#task ${timestamp} #p3`;
+		const primaryHashtag = taskProvider.getPrimaryHashtag();
+		const taskContent = `\n\n${primaryHashtag} ${timestamp} #p3`;
 
 		try {
 			// Write the file
@@ -502,6 +551,30 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage(value.trim() === '' ? 'New tasks will now be created in the workspace root.' : `New tasks will now be created in "${value.trim()}".`);
 		} catch (err) {
 			vscode.window.showErrorMessage(`Failed to update setting: ${err}`);
+		}
+	});
+
+	// Command to configure hashtags
+	const configureHashtagsCommand = vscode.commands.registerCommand('task-manager.configureHashtags', async () => {
+		// Read current value
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const current = config.get<string>('hashtags', '#task, #todo, #note');
+
+		const value = await vscode.window.showInputBox({
+			value: current,
+			placeHolder: 'Enter comma-separated hashtags (e.g., #task, #todo, #note)',
+			prompt: 'Hashtags that can be used to identify task files. Separate multiple hashtags with commas.'
+		});
+
+		if (value === undefined) {
+			return; // user cancelled
+		}
+
+		try {
+			await config.update('hashtags', value.trim(), vscode.ConfigurationTarget.Workspace);
+			vscode.window.showInformationMessage(`Hashtags updated to: "${value.trim()}"`);
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to update hashtags setting: ${err}`);
 		}
 	});
 
@@ -557,11 +630,13 @@ export function activate(context: vscode.ExtensionContext) {
 	// Add to subscriptions
 	context.subscriptions.push(treeView);
 	context.subscriptions.push(insertTimestampCommand);
+	context.subscriptions.push(selectPrimaryHashtagCommand);
 	context.subscriptions.push(filterPriorityCommand);
 	context.subscriptions.push(searchTasksCommand);
 	context.subscriptions.push(newTaskCommand);
 	context.subscriptions.push(aboutCommand);
 	context.subscriptions.push(configureNewTaskFolderCommand);
+	context.subscriptions.push(configureHashtagsCommand);
 	context.subscriptions.push(addDayCommand);
 	context.subscriptions.push(addWeekCommand);
 	context.subscriptions.push(addMonthCommand);

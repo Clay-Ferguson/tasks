@@ -1,3 +1,5 @@
 {
-    "task-manager.newTaskFolder": "./"
+    "task-manager.newTaskFolder": "./",
+    "task-manager.hashtags": "#task, #todo, #note",
+    "task-manager.primaryHashtag": "#todo"
 }

@@ -24,6 +24,16 @@
           "type": "string",
           "default": "",
           "description": "Folder where new task files will be created (relative to workspace root). Leave empty to create in workspace root."
+        },
+        "task-manager.primaryHashtag": {
+          "type": "string",
+          "default": "#task",
+          "description": "The primary hashtag used to identify task files. Files containing this hashtag will be considered tasks."
+        },
+        "task-manager.hashtags": {
+          "type": "string",
+          "default": "#task, #todo, #note",
+          "description": "Comma-separated list of hashtags that can be used to identify task files."
         }
       }
     },
@@ -37,6 +47,11 @@
       {
         "command": "task-manager.insertTimestamp",
         "title": "Insert Timestamp"
+      },
+      {
+        "command": "task-manager.selectPrimaryHashtag",
+        "title": "Select Primary Hashtag",
+        "icon": "$(tag)"
       },
       {
         "command": "task-manager.filterPriority",
@@ -62,6 +77,11 @@
         "command": "task-manager.configureNewTaskFolder",
         "title": "Folder for New Tasks...",
         "icon": "$(root-folder)"
+      },
+      {
+        "command": "task-manager.configureHashtags",
+        "title": "Configure Hashtags...",
+        "icon": "$(tag)"
       },
       {
         "command": "task-manager.addDay",
@@ -105,6 +125,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "task-manager.selectPrimaryHashtag",
+          "when": "view == taskExplorer",
+          "group": "navigation@0"
+        },
+        {
           "command": "task-manager.filterPriority",
           "when": "view == taskExplorer",
           "group": "navigation@1"
@@ -125,6 +150,11 @@
           "group": "0_settings@1"
         },
         {
+          "command": "task-manager.configureHashtags",
+          "when": "view == taskExplorer",
+          "group": "0_settings@2"
+        },
+        {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
           "group": "1_about"
@@ -135,6 +165,11 @@
           "command": "task-manager.configureNewTaskFolder",
           "when": "view == taskExplorer",
           "group": "0_settings@1"
+        },
+        {
+          "command": "task-manager.configureHashtags",
+          "when": "view == taskExplorer",
+          "group": "0_settings@2"
         },
         {
           "command": "task-manager.about",
