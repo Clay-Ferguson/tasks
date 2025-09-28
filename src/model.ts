@@ -128,12 +128,19 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
 	private cachedPrimaryHashtag: string | null = null; // Cache for primary hashtag
+	private currentPrimaryHashtag: string | null = null; // Runtime override for primary hashtag
 
 	/**
-	 * Gets the current primary hashtag from VSCode workspace configuration
-	 * @returns The primary hashtag string (e.g., "#task")
+	 * Gets the current primary hashtag from runtime override or VSCode workspace configuration
+	 * @returns The primary hashtag string (e.g., "#task") or "all-tags" for no filtering
 	 */
 	getPrimaryHashtag(): string {
+		// Check runtime override first
+		if (this.currentPrimaryHashtag !== null) {
+			return this.currentPrimaryHashtag;
+		}
+		
+		// Fall back to cached configuration
 		if (this.cachedPrimaryHashtag === null) {
 			const config = vscode.workspace.getConfiguration('task-manager');
 			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
@@ -167,6 +174,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 */
 	clearPrimaryHashtagCache(): void {
 		this.cachedPrimaryHashtag = null;
+	}
+
+	/**
+	 * Sets the runtime override for primary hashtag
+	 * @param hashtag The hashtag to override with, or null to clear override
+	 */
+	setPrimaryHashtagOverride(hashtag: string | null): void {
+		this.currentPrimaryHashtag = hashtag;
 	}
 
 	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
@@ -462,6 +477,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.currentFilter = 'All';
 		this.completionFilter = 'all';
 		this.currentSearchQuery = '';
+		this.currentPrimaryHashtag = 'all-tags';
 		
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();

@@ -295,9 +295,11 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	const selectPrimaryHashtagCommand = vscode.commands.registerCommand('task-manager.selectPrimaryHashtag', async () => {
-		// Get current configuration
+		// Get current primary hashtag from task provider (which handles runtime overrides)
+		const currentPrimaryHashtag = taskProvider.getPrimaryHashtag();
+		
+		// Get configuration for available hashtags
 		const config = vscode.workspace.getConfiguration('task-manager');
-		const currentPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
 		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
 		
 		// Parse hashtags from comma-delimited string
@@ -324,11 +326,17 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (selected) {
 			try {
-				// Update the primary hashtag configuration
-				await config.update('primaryHashtag', selected.value, vscode.ConfigurationTarget.Workspace);
-				
-				// Clear the cached primary hashtag to force reload
-				taskProvider.clearPrimaryHashtagCache();
+				if (selected.value === 'all-tags') {
+					// Set runtime override for all-tags mode
+					taskProvider.setPrimaryHashtagOverride('all-tags');
+				} else {
+					// Clear runtime override and update workspace configuration for specific hashtag
+					taskProvider.setPrimaryHashtagOverride(null);
+					await config.update('primaryHashtag', selected.value, vscode.ConfigurationTarget.Workspace);
+					
+					// Clear the cached primary hashtag to force reload from config
+					taskProvider.clearPrimaryHashtagCache();
+				}
 				
 				// Refresh the task view to reflect the new primary hashtag
 				taskProvider.refresh();
