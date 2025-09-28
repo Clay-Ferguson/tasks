@@ -240,8 +240,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// Set the tree view reference in the provider
 	taskProvider.setTreeView(treeView);
 
-
-
 	// Set up file watcher for automatic updates
 	setupFileWatcher(context, taskProvider);
 
@@ -361,15 +359,15 @@ export function activate(context: vscode.ExtensionContext) {
 				value: 'priority:all' 
 			},
 			{ 
-				label: `${currentPriority === 'p1' ? '$(check) Priority 1 (High)' : '$(circle-outline) Priority 1 (High)'}`, 
+				label: `${currentPriority === 'p1' ? '$(check) Priority 1' : '$(circle-outline) Priority 1'}`, 
 				value: 'priority:p1' 
 			},
 			{ 
-				label: `${currentPriority === 'p2' ? '$(check) Priority 2 (Medium)' : '$(circle-outline) Priority 2 (Medium)'}`, 
+				label: `${currentPriority === 'p2' ? '$(check) Priority 2' : '$(circle-outline) Priority 2'}`, 
 				value: 'priority:p2' 
 			},
 			{ 
-				label: `${currentPriority === 'p3' ? '$(check) Priority 3 (Low)' : '$(circle-outline) Priority 3 (Low)'}`, 
+				label: `${currentPriority === 'p3' ? '$(check) Priority 3' : '$(circle-outline) Priority 3'}`, 
 				value: 'priority:p3' 
 			},
 			// Separator

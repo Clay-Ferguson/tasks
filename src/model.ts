@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path'; 
+import * as path from 'path';
 import { title } from 'process';
 
 // Constants
@@ -15,8 +15,9 @@ export class TaskFile {
 		public readonly timestamp: Date,
 		public readonly timestampString: string,
 		public readonly priority: 'p1' | 'p2' | 'p3',
-		public readonly isCompleted: boolean = false
-	) {}
+		public readonly isCompleted: boolean = false,
+		public readonly tagsInFile: Set<string> = new Set<string>()
+	) { }
 }
 
 // Task file item for the tree view
@@ -28,7 +29,7 @@ export class TaskFileItem extends vscode.TreeItem {
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
-		
+
 		// Only set tooltip and description for actual files (not scanning indicator)
 		// Check if this is the scanning indicator by looking at the label
 		if (this.label.includes(SCANNING_MESSAGE)) {
@@ -55,26 +56,26 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private createTaskTooltip(label: string, timestampString: string): vscode.MarkdownString {
 		const timestampLine = timestampString.replace(/[\[\]]/g, '');
 		const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
-		
+
 		// Parse the timestamp to get the day of the week
 		// parseTimestamp handles both [MM/DD/YYYY] and [MM/DD/YYYY HH:MM:SS AM/PM] formats
 		const parsedDate = this.parseTimestamp(timestampString);
 		let dayOfWeek = '';
-		
+
 		if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate.getFullYear() < 2050) {
 			const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 			dayOfWeek = days[parsedDate.getDay()];
 		}
-		
+
 		const md = new vscode.MarkdownString();
 		md.supportHtml = false;
 		md.isTrusted = false;
-		
+
 		// Include both timestamp and day of week in the same code block
 		// If no day available, show just the timestamp
 		const codeContent = dayOfWeek ? `${timestampLine} -- ${dayOfWeek}` : timestampLine;
 		md.appendMarkdown(`*\n**${cleaned}**\n\n\`${codeContent}\``);
-		
+
 		return md;
 	}
 
@@ -84,7 +85,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const content = fs.readFileSync(filePath, 'utf8');
 			const lines = content.split(/\r?\n/);
 			const nonEmptyLines = lines.filter(line => line.trim().length > 0);
-			
+
 			// Special case: if there's only one non-empty line and it starts with "#" or "["
 			// then use the filename as the display text
 			if (nonEmptyLines.length === 1) {
@@ -96,7 +97,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					return cleanFileName;
 				}
 			}
-			
+
 			const firstNonBlank = nonEmptyLines[0];
 			if (!firstNonBlank) {
 				return '(blank file)';
@@ -139,7 +140,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		if (this.currentPrimaryHashtag !== null) {
 			return this.currentPrimaryHashtag;
 		}
-		
+
 		// Fall back to cached configuration
 		if (this.cachedPrimaryHashtag === null) {
 			const config = vscode.workspace.getConfiguration('task-manager');
@@ -156,6 +157,24 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		const config = vscode.workspace.getConfiguration('task-manager');
 		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
 		return hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+	}
+
+	/**
+	 * Finds all configured hashtags that exist in the given content
+	 * @param content The file content to search for hashtags
+	 * @returns Set of hashtags found in the content that are in our configuration
+	 */
+	private findHashtagsInContent(content: string): Set<string> {
+		const configuredHashtags = this.getAllConfiguredHashtags();
+		const foundHashtags = new Set<string>();
+
+		for (const hashtag of configuredHashtags) {
+			if (content.includes(hashtag)) {
+				foundHashtags.add(hashtag);
+			}
+		}
+
+		return foundHashtags;
 	}
 
 	/**
@@ -238,6 +257,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Update the task data
 			const oldTask = this.taskFileData[taskIndex];
 			const isCompleted = content.includes('#done');
+			// Find hashtags in the updated content
+			const tagsInFile = this.findHashtagsInContent(content);
 			const updatedTask = new TaskFile(
 				oldTask.filePath,
 				oldTask.fileName,
@@ -245,13 +266,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				newTimestamp,
 				newTimestampString,
 				priority,
-				isCompleted
+				isCompleted,
+				tagsInFile
 			);
 			this.taskFileData[taskIndex] = updatedTask;
 
 			// Re-build the task files display (similar to scanForTaskFiles but without scanning)
 			await this.rebuildTaskDisplay();
-			
+
 			// Fire the tree data change event
 			this._onDidChangeTreeData.fire();
 
@@ -275,16 +297,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 
 		try {
-			const updatedTreeItem = this.taskFiles.find(item => 
+			const updatedTreeItem = this.taskFiles.find(item =>
 				item.resourceUri.fsPath === filePath
 			);
-			
+
 			if (updatedTreeItem) {
 				// Reveal and select the updated item
-				await this.treeView.reveal(updatedTreeItem, { 
-					select: true, 
-					focus: false, 
-					expand: false 
+				await this.treeView.reveal(updatedTreeItem, {
+					select: true,
+					focus: false,
+					expand: false
 				});
 			}
 		} catch (error) {
@@ -299,66 +321,73 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 */
 	private async rebuildTaskDisplay(): Promise<void> {
 		// Apply the same filtering logic as scanForTaskFiles
-		let filteredTaskData = this.taskFileData;
+		let filteredTaskData = this.taskFileData; // &&&
 		const now = new Date();
-		
+
 		if (this.currentFilter === 'Due Soon') {
 			// Filter by due soon (within 3 days OR overdue)
 			const threeDaysFromNow = new Date();
 			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
-			
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp <= threeDaysFromNow
 			);
 		} else if (this.currentFilter === 'Overdue') {
 			// Filter by overdue only (past due date)
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp < now
 			);
 		}
 
 		// Apply priority filter if not "all"
 		if (this.currentPriorityFilter !== 'all') {
-			filteredTaskData = filteredTaskData.filter(taskFile => 
+			filteredTaskData = filteredTaskData.filter(taskFile =>
 				taskFile.priority === this.currentPriorityFilter
 			);
 		}
-		
+
 		// Sort task files by timestamp (chronological order)
 		filteredTaskData.sort((a, b) => {
 			return a.timestamp.getTime() - b.timestamp.getTime();
 		});
-		
+
 		// Create tree items from sorted task files (same logic as scanForTaskFiles)
 		this.taskFiles = filteredTaskData.map(taskFile => {
 			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
+			const isTask = taskFile.tagsInFile.has('#task');
 			// Use colored square emoji for both overdue and not overdue, based on priority
-			let icon = '🔴'; // red for p1
-			
-			// Use checkmark for completed tasks
-			if (taskFile.isCompleted) {
-				icon = '✅'; // checkmark for completed tasks
+			let icon = '⚪';
+			if (taskFile.tagsInFile.has('#note')) {
+				icon = '📝';
 			}
-			// Use dimmed/hollow icons for far future tasks
-			else if (isFarFuture) {
-				icon = '⚪'; // white for far future
+			if (isTask) {
+				if (taskFile.isCompleted) {
+					icon = '✅'; // checkmark for completed tasks
+				}
+				else {
+					if (taskFile.priority === 'p1') {
+						icon = '🔴'; // red for p1
+					}
+					else if (taskFile.priority === 'p2') {
+						icon = '🟠'; // orange for p2
+					}
+					else if (taskFile.priority === 'p3') {
+						icon = '🔵'; // blue for p3
+					}
+				}
 			}
-			else if (taskFile.priority === 'p2') {
-				icon = '🟠'; // orange for p2
-			} else if (taskFile.priority === 'p3') {
-				icon = '🔵'; // blue for p3
-			}
-			
+
+			// Use checkmark for completed items, but only if they have "#task" hashtag
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
-			let label = isOverdue
+			let label = isOverdue && isTask
 				? `${icon}⚠️ (${daysDiff}) ${displayText}`
 				: `${icon} (${daysDiff}) ${displayText}`;
-			
+
 			const treeItem = new TaskFileItem(
 				label,
 				taskFile.fileUri,
@@ -372,11 +401,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// Create markdown tooltip
 			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
-			
+
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
 			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
-			
+
 			if (isFarFuture && !hasRealTimestamp) {
 				treeItem.contextValue = 'farFutureTask';
 			} else if (hasRealTimestamp) {
@@ -384,10 +413,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			} else {
 				treeItem.contextValue = 'taskWithoutTimestamp';
 			}
-			
+
 			return treeItem;
 		});
-		
+
 		// Update context to show/hide the tree view
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
 	}
@@ -478,7 +507,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.completionFilter = 'all';
 		this.currentSearchQuery = '';
 		this.currentPrimaryHashtag = 'all-tags';
-		
+
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -499,14 +528,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private updateTreeViewTitle(): void {
 		if (this.treeView) {
 			const titleParts: string[] = [];
-			
+
 			// 1. Tag selection: Always show the primary hashtag (this is the base filter)
 			const primaryHashtag = this.getPrimaryHashtag();
 			const hashtagDisplay = primaryHashtag === 'all-tags' ? '' : primaryHashtag;
 			if (hashtagDisplay) {
 				titleParts.push(hashtagDisplay);
 			}
-			
+
 			// 2. Priority: Only show if not 'all' (the default/no-filtering state)
 			if (this.currentPriorityFilter !== 'all') {
 				const priorityDisplay = this.currentPriorityFilter.toUpperCase();
@@ -517,7 +546,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (this.currentFilter !== 'All') {
 				titleParts.push(this.currentFilter.toUpperCase());
 			}
-			
+
 			// 4. Completion status: Only show if not 'not-completed' (the default state)			
 			let completionDisplay = '';
 			if (this.completionFilter === 'all') {
@@ -531,13 +560,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (completionDisplay) {
 				titleParts.push(completionDisplay);
 			}
-			
-			
+
+
 			// 5. Search query: Only show if there's an active search
 			if (this.currentSearchQuery) {
 				titleParts.push(`"${this.currentSearchQuery}"`);
 			}
-			
+
 			// Join all parts with ' - ' separator, filter out any empty strings just to be safe
 			const filteredParts = titleParts.filter(part => part.trim().length > 0);
 			if (filteredParts.length > 0) {
@@ -558,47 +587,47 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// Apply date/time filters first
 		let filteredTaskData = this.taskFileData;
 		const now = new Date();
-		
+
 		if (this.currentFilter === 'Due Soon') {
 			const threeDaysFromNow = new Date();
 			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 			threeDaysFromNow.setHours(23, 59, 59, 999);
-			
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp <= threeDaysFromNow
 			);
 		} else if (this.currentFilter === 'Overdue') {
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp < now
 			);
 		}
 
 		// Apply priority filter if not "all"
 		if (this.currentPriorityFilter !== 'all') {
-			filteredTaskData = filteredTaskData.filter(taskFile => 
+			filteredTaskData = filteredTaskData.filter(taskFile =>
 				taskFile.priority === this.currentPriorityFilter
 			);
 		}
-		
+
 		// Apply search filter if there's a search query
 		if (this.currentSearchQuery) {
 			filteredTaskData = await this.filterTasksBySearch(filteredTaskData, this.currentSearchQuery);
 		}
-		
+
 		// Sort task files by timestamp (chronological order)
 		filteredTaskData.sort((a, b) => {
 			return a.timestamp.getTime() - b.timestamp.getTime();
 		});
-		
+
 		// Create tree items from filtered task files
 		this.taskFiles = filteredTaskData.map(taskFile => {
 			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
-			
+
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
-			
+
 			// Use checkmark for completed tasks
 			if (taskFile.isCompleted) {
 				icon = '✅'; // checkmark for completed tasks
@@ -612,14 +641,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			} else if (taskFile.priority === 'p3') {
 				icon = '🔵'; // blue for p3
 			}
-			
+
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue
 				? `${icon}⚠️ (${daysDiff}) ${displayText}`
 				: `${icon} (${daysDiff}) ${displayText}`;
-			
+
 			const treeItem = new TaskFileItem(
 				label,
 				taskFile.fileUri,
@@ -633,11 +662,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// Create markdown tooltip
 			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
-			
+
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
 			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
-			
+
 			if (isFarFuture && !hasRealTimestamp) {
 				treeItem.contextValue = 'farFutureTask';
 			} else if (hasRealTimestamp) {
@@ -645,10 +674,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			} else {
 				treeItem.contextValue = 'taskWithoutTimestamp';
 			}
-			
+
 			return treeItem;
 		});
-		
+
 		// Update context to show/hide the tree view
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
 	}
@@ -658,16 +687,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 */
 	private async filterTasksBySearch(taskFiles: TaskFile[], searchQuery: string): Promise<TaskFile[]> {
 		const results: TaskFile[] = [];
-		
+
 		for (const taskFile of taskFiles) {
 			try {
 				// Check if filename contains search query
 				const fileNameMatch = taskFile.fileName.toLowerCase().includes(searchQuery);
-				
+
 				// Check if file content contains search query
 				const content = await fs.promises.readFile(taskFile.filePath, 'utf8');
 				const contentMatch = content.toLowerCase().includes(searchQuery);
-				
+
 				if (fileNameMatch || contentMatch) {
 					results.push(taskFile);
 				}
@@ -679,7 +708,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 			}
 		}
-		
+
 		return results;
 	}
 
@@ -713,46 +742,46 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.taskFiles = [];
 		this.taskFileData = [];
 		this.scannedFiles.clear(); // Clear the set of scanned files
-		
+
 		if (!vscode.workspace.workspaceFolders) {
 			return;
 		}
 
 		// Use VS Code's efficient file search API instead of manual directory traversal
 		await this.scanMarkdownFilesOptimized();
-		
+
 		// Filter by due soon or overdue if requested
 		let filteredTaskData = this.taskFileData;
 		const now = new Date();
-		
+
 		if (dueSoonOnly) {
 			// Filter by due soon (within 3 days OR overdue)
 			const threeDaysFromNow = new Date();
 			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
-			
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp <= threeDaysFromNow
 			);
 		} else if (overdueOnly) {
 			// Filter by overdue only (past due date)
-			filteredTaskData = this.taskFileData.filter(taskFile => 
+			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp < now
 			);
 		}
 
 		// Apply priority filter if not "all"
 		if (this.currentPriorityFilter !== 'all') {
-			filteredTaskData = filteredTaskData.filter(taskFile => 
+			filteredTaskData = filteredTaskData.filter(taskFile =>
 				taskFile.priority === this.currentPriorityFilter
 			);
 		}
-		
+
 		// Sort task files by timestamp (chronological order)
 		filteredTaskData.sort((a, b) => {
 			return a.timestamp.getTime() - b.timestamp.getTime();
 		});
-		
+
 		// Create tree items from sorted task files
 		this.taskFiles = filteredTaskData.map(taskFile => {
 			const daysDiff = this.getDaysDifference(taskFile.timestamp);
@@ -760,7 +789,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			// Use colored square emoji for both overdue and not overdue, based on priority
 			let icon = '🔴'; // red for p1
-			
+
 			// Use checkmark for completed tasks
 			if (taskFile.isCompleted) {
 				icon = '✅'; // checkmark for completed tasks
@@ -774,14 +803,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			} else if (taskFile.priority === 'p3') {
 				icon = '🔵'; // blue for p3
 			}
-			
+
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue
 				? `${icon}⚠️ (${daysDiff}) ${displayText}`
 				: `${icon} (${daysDiff}) ${displayText}`;
-			
+
 			const treeItem = new TaskFileItem(
 				label,
 				taskFile.fileUri,
@@ -795,11 +824,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// Create markdown tooltip
 			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
-			
+
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
 			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
-			
+
 			if (isFarFuture && !hasRealTimestamp) {
 				treeItem.contextValue = 'farFutureTask';
 			} else if (hasRealTimestamp) {
@@ -807,10 +836,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			} else {
 				treeItem.contextValue = 'taskWithoutTimestamp';
 			}
-			
+
 			return treeItem;
 		});
-		
+
 		// Update context to show/hide the tree view
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
 	}
@@ -820,26 +849,26 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 */
 	private async scanMarkdownFilesOptimized(): Promise<void> {
 		// try {
-			// Use VS Code's built-in file search with glob pattern
-			// This excludes common directories automatically and is much faster
-			const mdFiles = await vscode.workspace.findFiles(
-				'**/*.md', // Include all .md files
-				'{**/node_modules/**,**/.git/**,**/.vscode/**,**/out/**,**/dist/**,**/build/**,**/.next/**,**/target/**}', // Exclude common directories
-				undefined // No max results limit
-			);
+		// Use VS Code's built-in file search with glob pattern
+		// This excludes common directories automatically and is much faster
+		const mdFiles = await vscode.workspace.findFiles(
+			'**/*.md', // Include all .md files
+			'{**/node_modules/**,**/.git/**,**/.vscode/**,**/out/**,**/dist/**,**/build/**,**/.next/**,**/target/**}', // Exclude common directories
+			undefined // No max results limit
+		);
 
-			// Process each markdown file
-			for (const fileUri of mdFiles) {
-				const filePath = fileUri.fsPath;
-				const fileName = path.basename(filePath);
-				
-				// Apply the same file filtering logic
-				if (!this.isTaskFile(fileName)) {
-					continue;
-				}
+		// Process each markdown file
+		for (const fileUri of mdFiles) {
+			const filePath = fileUri.fsPath;
+			const fileName = path.basename(filePath);
 
-				await this.scanFile(filePath);
+			// Apply the same file filtering logic
+			if (!this.isTaskFile(fileName)) {
+				continue;
 			}
+
+			await this.scanFile(filePath);
+		}
 		// } catch (error) {
 		// 	console.error('Error during optimized markdown file scanning:', error);
 		// 	// Fallback to the original method if the optimized approach fails
@@ -854,10 +883,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private async scanDirectory(dirPath: string): Promise<void> {
 		try {
 			const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
-			
+
 			for (const entry of entries) {
 				const fullPath = path.join(dirPath, entry.name);
-				
+
 				// Skip node_modules, .git, and other common directories we don't want to scan
 				if (entry.isDirectory() && !this.shouldSkipDirectory(entry.name)) {
 					await this.scanDirectory(fullPath);
@@ -896,7 +925,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// This avoids reading large files that don't contain task hashtags
 			const quickHashtag = this.getPrimaryHashtag();
 			let foundQuickHashtag = false;
-			
+
 			if (quickHashtag === 'all-tags') {
 				// Need to check for any configured hashtag
 				const allHashtags = this.getAllConfiguredHashtags();
@@ -921,7 +950,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					await fd.close();
 				}
 			}
-			
+
 			// If no hashtag found in first 1KB, skip this file entirely
 			if (!foundQuickHashtag) {
 				return;
@@ -930,12 +959,13 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Only read the full file if we found a hashtag in the preview
 			const content = await fs.promises.readFile(filePath, 'utf8');
 
-		// Check for primary hashtag or any hashtag if in 'all-tags' mode
-		const primaryHashtag = this.getPrimaryHashtag();
-		const hasTaskHashtag = primaryHashtag === 'all-tags' 
-			? this.containsAnyConfiguredHashtag(content)
-			: content.includes(primaryHashtag);
-		const isDoneTask = content.includes('#done');			// Include files based on completion filter
+			// Check for primary hashtag or any hashtag if in 'all-tags' mode
+			const primaryHashtag = this.getPrimaryHashtag();
+			const hasTaskHashtag = primaryHashtag === 'all-tags'
+				? this.containsAnyConfiguredHashtag(content)
+				: content.includes(primaryHashtag);
+
+			const isDoneTask = content.includes('#done');			// Include files based on completion filter
 			let includeTask = false;
 			if (hasTaskHashtag) {
 				if (this.completionFilter === 'all') {
@@ -946,16 +976,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					includeTask = !isDoneTask;
 				}
 			}
-			
+
 			if (includeTask) {
 				// Look for timestamp, but it's optional now
 				// Only support the new standard format: [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
 				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
 				const timestampMatch = content.match(timestampRegex);
-				
+
 				let parsedTimestamp: Date;
 				let timestampString: string;
-				
+
 				if (timestampMatch) {
 					// Use existing timestamp if found (keep original string for display)
 					timestampString = timestampMatch[0];
@@ -967,7 +997,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					// Emit placeholder in new standard format
 					timestampString = `[01/01/2050 12:00:00 PM]`;
 				}
-				
+
 				// Detect priority
 				let priority: 'p1' | 'p2' | 'p3' = 'p1';
 				if (content.includes('#p2')) {
@@ -975,12 +1005,16 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				} else if (content.includes('#p3')) {
 					priority = 'p3';
 				}
-				
+
 				// Check if task is completed
 				const isCompleted = isDoneTask;
-				
+
 				const fileName = path.basename(filePath);
 				const fileUri = vscode.Uri.file(filePath);
+
+				// Find hashtags in the file content
+				const tagsInFile = this.findHashtagsInContent(content);
+
 				const taskFile = new TaskFile(
 					filePath,
 					fileName,
@@ -988,7 +1022,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 					parsedTimestamp,
 					timestampString,
 					priority,
-					isCompleted
+					isCompleted,
+					tagsInFile
 				);
 				this.taskFileData.push(taskFile);
 			}
@@ -1032,10 +1067,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// Reset time to beginning of day for accurate day comparison
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-		
+
 		const diffMs = taskDay.getTime() - today.getTime();
 		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-		
+
 		if (diffDays < 0) {
 			// Overdue
 			const overdueDays = Math.abs(diffDays);
@@ -1065,15 +1100,15 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		if (taskDate.getFullYear() >= 2050) {
 			return '?';
 		}
-		
+
 		const now = new Date();
 		// Reset time to beginning of day for accurate day comparison
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-		
+
 		const diffMs = taskDay.getTime() - today.getTime();
 		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-		
+
 		return diffDays;
 	}
 
@@ -1081,10 +1116,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		const now = new Date();
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 		const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-		
+
 		const diffMs = taskDay.getTime() - today.getTime();
 		const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-		
+
 		return diffDays > 365;
 	}
 }

@@ -258,9 +258,9 @@ The panel offers a single unified filtering system plus search to refine what yo
 
 #### Filter Groups (10 Options Total)
 1. (Priority) Any Priority – show every priority level
-2. (Priority) Priority 1 (High) – `#p1` or no priority tag
-3. (Priority) Priority 2 (Medium) – `#p2`
-4. (Priority) Priority 3 (Low) – `#p3`
+2. (Priority) Priority 1 – `#p1` (High priority)
+3. (Priority) Priority 2 – `#p2` (Medium priority)
+4. (Priority) Priority 3 – `#p3` (Low priority)
 5. (View) Any Time – no due-date restriction
 6. (View) Due Soon – due in next 3 days OR already overdue
 7. (View) Overdue – past due date only (⚠️ shown)
@@ -353,9 +353,9 @@ If no priority hashtag is present, treated as high priority (`#p1`).
 
 **Priority Filtering**: Use the filter icon:
 - **Any Priority**: Shows tasks of all priority levels (default)
-- **Priority 1 (High)**: Shows only high-priority tasks
-- **Priority 2 (Medium)**: Shows only medium-priority tasks  
-- **Priority 3 (Low)**: Shows only low-priority tasks
+- **Priority 1**: Shows only high-priority tasks
+- **Priority 2**: Shows only medium-priority tasks  
+- **Priority 3**: Shows only low-priority tasks
 
 Add the priority hashtag anywhere inside the file.
 
