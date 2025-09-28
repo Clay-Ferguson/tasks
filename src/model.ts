@@ -702,8 +702,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			return;
 		}
 
-		const workspaceFolder = vscode.workspace.workspaceFolders[0];
-		await this.scanDirectory(workspaceFolder.uri.fsPath);
+		// Use VS Code's efficient file search API instead of manual directory traversal
+		await this.scanMarkdownFilesOptimized();
 		
 		// Filter by due soon or overdue if requested
 		let filteredTaskData = this.taskFileData;
@@ -799,7 +799,42 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
 	}
 
-	// todo-0: look for ways to speed this scan up. Is there a way to only grab .md files up front?
+	/**
+	 * Optimized scanning using VS Code's findFiles API to get only .md files upfront
+	 */
+	private async scanMarkdownFilesOptimized(): Promise<void> {
+		// try {
+			// Use VS Code's built-in file search with glob pattern
+			// This excludes common directories automatically and is much faster
+			const mdFiles = await vscode.workspace.findFiles(
+				'**/*.md', // Include all .md files
+				'{**/node_modules/**,**/.git/**,**/.vscode/**,**/out/**,**/dist/**,**/build/**,**/.next/**,**/target/**}', // Exclude common directories
+				undefined // No max results limit
+			);
+
+			// Process each markdown file
+			for (const fileUri of mdFiles) {
+				const filePath = fileUri.fsPath;
+				const fileName = path.basename(filePath);
+				
+				// Apply the same file filtering logic
+				if (!this.isTaskFile(fileName)) {
+					continue;
+				}
+
+				await this.scanFile(filePath);
+			}
+		// } catch (error) {
+		// 	console.error('Error during optimized markdown file scanning:', error);
+		// 	// Fallback to the original method if the optimized approach fails
+		// 	console.log('Falling back to directory-based scanning...');
+		// 	const workspaceFolder = vscode.workspace.workspaceFolders![0];
+		// 	await this.scanDirectory(workspaceFolder.uri.fsPath);
+		// }
+	}
+
+	// This currently-unused method is kept as fallback. But was replaced with the more efficient
+	// scanMarkdownFilesOptimized method.
 	private async scanDirectory(dirPath: string): Promise<void> {
 		try {
 			const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
@@ -841,7 +876,43 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 			this.scannedFiles.add(filePath);
 
-		const content = await fs.promises.readFile(filePath, 'utf8');
+			// Quick hashtag check first - read only first 1KB to check for hashtags
+			// This avoids reading large files that don't contain task hashtags
+			const quickHashtag = this.getPrimaryHashtag();
+			let foundQuickHashtag = false;
+			
+			if (quickHashtag === 'all-tags') {
+				// Need to check for any configured hashtag
+				const allHashtags = this.getAllConfiguredHashtags();
+				const quickBuffer = Buffer.alloc(1024);
+				const fd = await fs.promises.open(filePath, 'r');
+				try {
+					const { bytesRead } = await fd.read(quickBuffer, 0, 1024, 0);
+					const quickContent = quickBuffer.slice(0, bytesRead).toString('utf8');
+					foundQuickHashtag = allHashtags.some(hashtag => quickContent.includes(hashtag));
+				} finally {
+					await fd.close();
+				}
+			} else {
+				// Just check for the primary hashtag
+				const quickBuffer = Buffer.alloc(1024);
+				const fd = await fs.promises.open(filePath, 'r');
+				try {
+					const { bytesRead } = await fd.read(quickBuffer, 0, 1024, 0);
+					const quickContent = quickBuffer.slice(0, bytesRead).toString('utf8');
+					foundQuickHashtag = quickContent.includes(quickHashtag);
+				} finally {
+					await fd.close();
+				}
+			}
+			
+			// If no hashtag found in first 1KB, skip this file entirely
+			if (!foundQuickHashtag) {
+				return;
+			}
+
+			// Only read the full file if we found a hashtag in the preview
+			const content = await fs.promises.readFile(filePath, 'utf8');
 
 		// Check for primary hashtag or any hashtag if in 'all-tags' mode
 		const primaryHashtag = this.getPrimaryHashtag();
