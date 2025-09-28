@@ -334,11 +334,11 @@ export function activate(context: vscode.ExtensionContext) {
 		const currentPriority = taskProvider.getCurrentPriorityFilter();
 		const currentView = taskProvider.getCurrentViewFilter();
 		const completionFilter = taskProvider.getCompletionFilter();
-
+		const div = '----------'; // visual divider
 		const options = [
 			// Priority group
 			{ 
-				label: `${currentPriority === 'all' ? '$(check) All Priorities' : '$(circle-outline) All Priorities'}`, 
+				label: `${currentPriority === 'all' ? `$(check) ${div}All Priorities${div}` : `$(circle-outline) ${div}All Priorities${div}`}`, 
 				value: 'priority:all' 
 			},
 			{ 
@@ -357,7 +357,7 @@ export function activate(context: vscode.ExtensionContext) {
 			{ label: '', value: 'separator', kind: vscode.QuickPickItemKind.Separator } as any,
 			// View group
 			{ 
-				label: `${currentView === 'All' ? '$(check) All Tasks' : '$(circle-outline) All Tasks'}`, 
+				label: `${currentView === 'All' ? `$(check) ${div}All Tasks${div}` : `$(circle-outline) ${div}All Tasks${div}`}`, 
 				value: 'view:All' 
 			},
 			{ 
@@ -372,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
 			{ label: '', value: 'separator2', kind: vscode.QuickPickItemKind.Separator } as any,
 			// Completion group
 			{ 
-				label: `${completionFilter === 'all' ? '$(check) All Completions' : '$(circle-outline) All Completions'}`, 
+				label: `${completionFilter === 'all' ? `$(check) ${div}All Completions${div}` : `$(circle-outline) ${div}All Completions${div}`}`, 
 				value: 'completion:all' 
 			},
 			{ 
