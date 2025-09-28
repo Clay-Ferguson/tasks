@@ -14,7 +14,7 @@ export class TaskFile {
 		public readonly fileUri: vscode.Uri,
 		public readonly timestamp: Date,
 		public readonly timestampString: string,
-		public readonly priority: 'p1' | 'p2' | 'p3',
+		public readonly priority: 'p1' | 'p2' | 'p3' | '',
 		public readonly isCompleted: boolean = false,
 		public readonly tagsInFile: Set<string> = new Set<string>()
 	) { }
@@ -132,6 +132,23 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private currentPrimaryHashtag: string | null = null; // Runtime override for primary hashtag
 
 	/**
+	 * Detects the priority level from file content
+	 * @param content The file content to analyze
+	 * @returns The priority level ('p1', 'p2', 'p3', or '' for no priority tag)
+	 */
+	private detectPriorityFromContent(content: string): 'p1' | 'p2' | 'p3' | '' {
+		if (content.includes('#p1')) {
+			return 'p1';
+		} else if (content.includes('#p2')) {
+			return 'p2';
+		} else if (content.includes('#p3')) {
+			return 'p3';
+		}
+		// No priority tag found - return empty string so white circle is shown
+		return '';
+	}
+
+	/**
 	 * Gets the current primary hashtag from runtime override or VSCode workspace configuration
 	 * @returns The primary hashtag string (e.g., "#task") or "all-tags" for no filtering
 	 */
@@ -247,12 +264,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// Re-read the file to get updated priority and content
 			const content = fs.readFileSync(filePath, 'utf8');
-			let priority: 'p1' | 'p2' | 'p3' = 'p1';
-			if (content.includes('#p2')) {
-				priority = 'p2';
-			} else if (content.includes('#p3')) {
-				priority = 'p3';
-			}
+			const priority = this.detectPriorityFromContent(content);
 
 			// Update the task data
 			const oldTask = this.taskFileData[taskIndex];
@@ -989,12 +1001,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 				}
 
 				// Detect priority
-				let priority: 'p1' | 'p2' | 'p3' = 'p1';
-				if (content.includes('#p2')) {
-					priority = 'p2';
-				} else if (content.includes('#p3')) {
-					priority = 'p3';
-				}
+				const priority = this.detectPriorityFromContent(content);
 
 				// Check if task is completed
 				const isCompleted = isDoneTask;
