@@ -257,20 +257,20 @@ The panel offers a single unified filtering system plus search to refine what yo
 - Panel title shows current state (e.g., `Due Soon - P1`, or `SEARCH - P* - 'bug'`).
 
 #### Filter Groups (10 Options Total)
-1. (Priority) All Priorities – show every priority level
+1. (Priority) Any Priority – show every priority level
 2. (Priority) Priority 1 (High) – `#p1` or no priority tag
 3. (Priority) Priority 2 (Medium) – `#p2`
 4. (Priority) Priority 3 (Low) – `#p3`
-5. (View) All Tasks – no due-date restriction
+5. (View) Any Time – no due-date restriction
 6. (View) Due Soon – due in next 3 days OR already overdue
 7. (View) Overdue – past due date only (⚠️ shown)
-8. (Completion) All Completions – completed + not completed
-9. (Completion) Completed – contains `#done`
-10. (Completion) Not Completed – no `#done` (default)
+8. (Completion) Any Completion – completed + not completed
+9. (Completion) Done – contains `#done`
+10. (Completion) Not Done – no `#done` (default)
 
 #### Using Filters
 1. Click the filter (funnel) icon and pick one option in any group; previous selection in that group is replaced.
-2. Combine one selection from each group for precise views (e.g., High + Due Soon + Not Completed).
+2. Combine one selection from each group for precise views (e.g., High + Due Soon + Not Done).
 3. Changing filters clears any active search automatically.
 4. Overdue tasks always show the warning icon ⚠️; they also appear in Due Soon (by design).
 
@@ -291,7 +291,7 @@ The panel offers a single unified filtering system plus search to refine what yo
 #### Tips
 - If you can’t find a completed task, ensure Completion filter isn’t set to Not Completed.
 - To review only recently urgent items: select Due Soon + Priority 1.
-- Want everything regardless of status? Use All Priorities + All Tasks + All Completions and clear search.
+- Want everything regardless of status? Use Any Priority + Any Time + Any Completion and clear search.
 
 #### Rationale
 Overdue tasks are included in Due Soon so that a single glance covers the immediate action horizon (past-due plus next 72 hours) without toggling views.
@@ -352,7 +352,7 @@ If no priority hashtag is present, treated as high priority (`#p1`).
 ```
 
 **Priority Filtering**: Use the filter icon:
-- **All Priorities**: Shows tasks of all priority levels (default)
+- **Any Priority**: Shows tasks of all priority levels (default)
 - **Priority 1 (High)**: Shows only high-priority tasks
 - **Priority 2 (Medium)**: Shows only medium-priority tasks  
 - **Priority 3 (Low)**: Shows only low-priority tasks

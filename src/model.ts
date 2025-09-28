@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path'; 
+import { title } from 'process';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -138,6 +139,26 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
 		}
 		return this.cachedPrimaryHashtag;
+	}
+
+	/**
+	 * Gets all configured hashtags from VSCode workspace configuration
+	 * @returns Array of hashtag strings (e.g., ["#task", "#todo", "#note"])
+	 */
+	private getAllConfiguredHashtags(): string[] {
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+		return hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+	}
+
+	/**
+	 * Checks if content contains any of the configured hashtags
+	 * @param content The file content to check
+	 * @returns true if content contains any configured hashtag
+	 */
+	containsAnyConfiguredHashtag(content: string): boolean {
+		const allHashtags = this.getAllConfiguredHashtags();
+		return allHashtags.some(hashtag => content.includes(hashtag));
 	}
 
 	/**
@@ -446,33 +467,55 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	private updateTreeViewTitle(): void {
 		if (this.treeView) {
-			// Get the current primary hashtag for the leftmost part of the title
+			const titleParts: string[] = [];
+			
+			// 1. Tag selection: Always show the primary hashtag (this is the base filter)
 			const primaryHashtag = this.getPrimaryHashtag();
-			
-			let priorityText = '';
-			switch (this.currentPriorityFilter) {
-				case 'p1':
-					priorityText = ' - P1';
-					break;
-				case 'p2':
-					priorityText = ' - P2';
-					break;
-				case 'p3':
-					priorityText = ' - P3';
-					break;
-				default:
-					priorityText = ' - P*';
-					break;
+			const hashtagDisplay = primaryHashtag === 'all-tags' ? '' : primaryHashtag;
+			if (hashtagDisplay) {
+				titleParts.push(hashtagDisplay);
 			}
 			
-			// Add search query to title if searching
-			let searchText = '';
+			// 2. Priority: Only show if not 'all' (the default/no-filtering state)
+			if (this.currentPriorityFilter !== 'all') {
+				const priorityDisplay = this.currentPriorityFilter.toUpperCase();
+				titleParts.push(priorityDisplay);
+			}
+
+			// 3. Time range: Only show if not 'All' (the default/no-filtering state)
+			if (this.currentFilter !== 'All') {
+				titleParts.push(this.currentFilter.toUpperCase());
+			}
+			
+			// 4. Completion status: Only show if not 'not-completed' (the default state)			
+			let completionDisplay = '';
+			if (this.completionFilter === 'all') {
+				// leave blank
+			} else if (this.completionFilter === 'completed') {
+				completionDisplay = 'DONE';
+			}
+			else {
+				completionDisplay = 'NOT DONE';
+			}
+			if (completionDisplay) {
+				titleParts.push(completionDisplay);
+			}
+			
+			
+			// 5. Search query: Only show if there's an active search
 			if (this.currentSearchQuery) {
-				searchText = ` - "${this.currentSearchQuery}"`;
+				titleParts.push(`"${this.currentSearchQuery}"`);
 			}
 			
-			// Format: #hashtag - FILTER - P* - "search"
-			this.treeView.title = `${primaryHashtag} - ${this.currentFilter.toUpperCase()}${priorityText}${searchText}`;
+			// Join all parts with ' - ' separator, filter out any empty strings just to be safe
+			const filteredParts = titleParts.filter(part => part.trim().length > 0);
+			if (filteredParts.length > 0) {
+				this.treeView.title = filteredParts.join(' - ');
+			}
+			else {
+				this.treeView.title = '';
+			}
+			console.log(`Updated tree view title [${this.treeView.title}]`);
 		}
 	}
 
@@ -783,10 +826,12 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			this.scannedFiles.add(filePath);
 
 		const content = await fs.promises.readFile(filePath, 'utf8');
-		
-		// Check for primary hashtag, and optionally exclude #done files
+
+		// Check for primary hashtag or any hashtag if in 'all-tags' mode
 		const primaryHashtag = this.getPrimaryHashtag();
-		const hasTaskHashtag = content.includes(primaryHashtag);
+		const hasTaskHashtag = primaryHashtag === 'all-tags' 
+			? this.containsAnyConfiguredHashtag(content)
+			: content.includes(primaryHashtag);
 		const isDoneTask = content.includes('#done');			// Include files based on completion filter
 			let includeTask = false;
 			if (hasTaskHashtag) {

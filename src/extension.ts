@@ -53,7 +53,9 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			
 			// Check if it's a task file
 			const primaryHashtag = taskProvider.getPrimaryHashtag();
-			const hasTaskHashtag = contentString.includes(primaryHashtag);
+			const hasTaskHashtag = primaryHashtag === 'all-tags'
+				? taskProvider.containsAnyConfiguredHashtag(contentString)
+				: contentString.includes(primaryHashtag);
 			const isDoneTask = contentString.includes('#done');
 			
 			// Check if task should be included based on completion filter
@@ -301,11 +303,20 @@ export function activate(context: vscode.ExtensionContext) {
 		// Parse hashtags from comma-delimited string
 		const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 		
+		// Create options with "all-tags" at the top, then individual hashtags
+		const allHashtagsOption = {
+			label: `${currentPrimaryHashtag === 'all-tags' ? '$(check)' : '$(circle-outline)'} Any Hashtag`,
+			value: 'all-tags'
+		};
+		
 		// Create options with checkmarks for current selection
-		const options = hashtags.map(hashtag => ({
+		const hashtagOptions = hashtags.map(hashtag => ({
 			label: `${hashtag === currentPrimaryHashtag ? '$(check)' : '$(circle-outline)'} ${hashtag}`,
 			value: hashtag
 		}));
+		
+		// Combine all options with "all-tags" first
+		const options = [allHashtagsOption, ...hashtagOptions];
 
 		const selected = await vscode.window.showQuickPick(options, {
 			placeHolder: 'Select primary hashtag for task identification'
@@ -322,7 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// Refresh the task view to reflect the new primary hashtag
 				taskProvider.refresh();
 				
-				vscode.window.showInformationMessage(`Primary hashtag set to: ${selected.value}`);
+				// vscode.window.showInformationMessage(`Primary hashtag set to: ${selected.value}`);
 			} catch (err) {
 				vscode.window.showErrorMessage(`Failed to update primary hashtag: ${err}`);
 			}
@@ -334,11 +345,11 @@ export function activate(context: vscode.ExtensionContext) {
 		const currentPriority = taskProvider.getCurrentPriorityFilter();
 		const currentView = taskProvider.getCurrentViewFilter();
 		const completionFilter = taskProvider.getCompletionFilter();
-		const div = '----------'; // visual divider
+		const div = '––––––––––'; // visual divider
 		const options = [
 			// Priority group
 			{ 
-				label: `${currentPriority === 'all' ? `$(check) ${div}All Priorities${div}` : `$(circle-outline) ${div}All Priorities${div}`}`, 
+				label: `${currentPriority === 'all' ? `$(check) ${div} Any Priority ${div}` : `$(circle-outline) ${div} Any Priority ${div}`}`, 
 				value: 'priority:all' 
 			},
 			{ 
@@ -357,7 +368,7 @@ export function activate(context: vscode.ExtensionContext) {
 			{ label: '', value: 'separator', kind: vscode.QuickPickItemKind.Separator } as any,
 			// View group
 			{ 
-				label: `${currentView === 'All' ? `$(check) ${div}All Tasks${div}` : `$(circle-outline) ${div}All Tasks${div}`}`, 
+				label: `${currentView === 'All' ? `$(check) ${div} Any Time ${div}` : `$(circle-outline) ${div} Any Time ${div}`}`, 
 				value: 'view:All' 
 			},
 			{ 
@@ -372,15 +383,15 @@ export function activate(context: vscode.ExtensionContext) {
 			{ label: '', value: 'separator2', kind: vscode.QuickPickItemKind.Separator } as any,
 			// Completion group
 			{ 
-				label: `${completionFilter === 'all' ? `$(check) ${div}All Completions${div}` : `$(circle-outline) ${div}All Completions${div}`}`, 
+				label: `${completionFilter === 'all' ? `$(check) ${div} Any Completion ${div}` : `$(circle-outline) ${div} Any Completion ${div}`}`, 
 				value: 'completion:all' 
 			},
 			{ 
-				label: `${completionFilter === 'completed' ? '$(check) Completed' : '$(circle-outline) Completed'}`, 
+				label: `${completionFilter === 'completed' ? '$(check) Done' : '$(circle-outline) Done'}`, 
 				value: 'completion:completed' 
 			},
 			{ 
-				label: `${completionFilter === 'not-completed' ? '$(check) Not Completed' : '$(circle-outline) Not Completed'}`, 
+				label: `${completionFilter === 'not-completed' ? '$(check) Not Done' : '$(circle-outline) Not Done'}`, 
 				value: 'completion:not-completed' 
 			}
 		];
@@ -501,7 +512,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Create task content, with two blank lines because user will want to start editing at beginning of file.
 		const primaryHashtag = taskProvider.getPrimaryHashtag();
-		const taskContent = `\n\n${primaryHashtag} ${timestamp} #p3`;
+		// If in "all-tags" mode, use the first configured hashtag instead of "all-tags"
+		let hashtagToUse = primaryHashtag;
+		if (primaryHashtag === 'all-tags') {
+			const config = vscode.workspace.getConfiguration('task-manager');
+			const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+			const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+			hashtagToUse = hashtags.length > 0 ? hashtags[0] : '#task'; // fallback to #task if no hashtags configured
+		}
+		const taskContent = `\n\n${hashtagToUse} ${timestamp} #p3`;
 
 		try {
 			// Write the file
