@@ -288,6 +288,42 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	/**
+	 * Gets the appropriate icon for a task file based on its properties
+	 * @param taskFile The task file to get an icon for
+	 * @returns The emoji icon to display for this task
+	 */
+	private getIconForTaskFile(taskFile: TaskFile): string {
+		// Calculate derived values
+		const isTask = taskFile.tagsInFile.has('#task');
+		
+		// Use colored square emoji for both overdue and not overdue, based on priority
+		let icon = '⚪';
+		
+		if (taskFile.tagsInFile.has('#note')) {
+			icon = '📝';
+		}
+		
+		if (isTask) {
+			if (taskFile.isCompleted) {
+				icon = '✅'; // checkmark for completed tasks
+			}
+			else {
+				if (taskFile.priority === 'p1') {
+					icon = '🔴'; // red for p1
+				}
+				else if (taskFile.priority === 'p2') {
+					icon = '🟠'; // orange for p2
+				}
+				else if (taskFile.priority === 'p3') {
+					icon = '🔵'; // blue for p3
+				}
+			}
+		} 
+		
+		return icon;
+	}
+
+	/**
 	 * Highlights and selects the specified task item in the tree view
 	 * @param filePath The absolute path of the file to highlight
 	 */
@@ -358,27 +394,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
 			const isTask = taskFile.tagsInFile.has('#task');
-			// Use colored square emoji for both overdue and not overdue, based on priority
-			let icon = '⚪';
-			if (taskFile.tagsInFile.has('#note')) {
-				icon = '📝';
-			}
-			if (isTask) {
-				if (taskFile.isCompleted) {
-					icon = '✅'; // checkmark for completed tasks
-				}
-				else {
-					if (taskFile.priority === 'p1') {
-						icon = '🔴'; // red for p1
-					}
-					else if (taskFile.priority === 'p2') {
-						icon = '🟠'; // orange for p2
-					}
-					else if (taskFile.priority === 'p3') {
-						icon = '🔵'; // blue for p3
-					}
-				}
-			}
+			
+			const icon = this.getIconForTaskFile(taskFile);
 
 			// Use checkmark for completed items, but only if they have "#task" hashtag
 			const displayText = this.getFileDisplayText(taskFile.filePath);
@@ -624,23 +641,9 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
+			const isTask = taskFile.tagsInFile.has('#task');
 
-			// Use colored square emoji for both overdue and not overdue, based on priority
-			let icon = '🔴'; // red for p1
-
-			// Use checkmark for completed tasks
-			if (taskFile.isCompleted) {
-				icon = '✅'; // checkmark for completed tasks
-			}
-			// Use dimmed/hollow icons for far future tasks
-			else if (isFarFuture) {
-				icon = '⚪'; // white for far future
-			}
-			else if (taskFile.priority === 'p2') {
-				icon = '🟠'; // orange for p2
-			} else if (taskFile.priority === 'p3') {
-				icon = '🔵'; // blue for p3
-			}
+			const icon = this.getIconForTaskFile(taskFile);
 
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// Show days difference in parentheses at the beginning of the task description
@@ -787,22 +790,9 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = this.getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < now;
 			const isFarFuture = this.isFarFuture(taskFile.timestamp);
-			// Use colored square emoji for both overdue and not overdue, based on priority
-			let icon = '🔴'; // red for p1
+			const isTask = taskFile.tagsInFile.has('#task');
 
-			// Use checkmark for completed tasks
-			if (taskFile.isCompleted) {
-				icon = '✅'; // checkmark for completed tasks
-			}
-			// Use dimmed/hollow icons for far future tasks
-			else if (isFarFuture) {
-				icon = '⚪'; // white for far future
-			}
-			else if (taskFile.priority === 'p2') {
-				icon = '🟠'; // orange for p2
-			} else if (taskFile.priority === 'p3') {
-				icon = '🔵'; // blue for p3
-			}
+			const icon = this.getIconForTaskFile(taskFile);
 
 			const displayText = this.getFileDisplayText(taskFile.filePath);
 			// Show days difference in parentheses at the beginning of the task description
