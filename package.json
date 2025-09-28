@@ -89,6 +89,11 @@
         "icon": "$(tag)"
       },
       {
+        "command": "task-manager.clearFilters",
+        "title": "Clear Filters",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "task-manager.addDay",
         "title": "+Day"
       },
@@ -160,6 +165,11 @@
           "group": "0_settings@2"
         },
         {
+          "command": "task-manager.clearFilters",
+          "when": "view == taskExplorer",
+          "group": "0_settings@3"
+        },
+        {
           "command": "task-manager.about",
           "when": "view == taskExplorer",
           "group": "1_about"
@@ -175,6 +185,11 @@
           "command": "task-manager.configureHashtags",
           "when": "view == taskExplorer",
           "group": "0_settings@2"
+        },
+        {
+          "command": "task-manager.clearFilters",
+          "when": "view == taskExplorer",
+          "group": "0_settings@3"
         },
         {
           "command": "task-manager.about",

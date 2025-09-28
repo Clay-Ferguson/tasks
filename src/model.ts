@@ -456,6 +456,21 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
+	clearFilters(): void {
+		// Reset all filters to their default "all" states
+		this.currentPriorityFilter = 'all';
+		this.currentFilter = 'All';
+		this.completionFilter = 'all';
+		this.currentSearchQuery = '';
+		
+		this.updateTreeViewTitle();
+		this.showScanningIndicator();
+		this.scanForTaskFiles().then(() => {
+			this.hideScanningIndicator();
+			this._onDidChangeTreeData.fire();
+		});
+	}
+
 	private showScanningIndicator(): void {
 		this.isScanning = true;
 		this._onDidChangeTreeData.fire();
@@ -784,6 +799,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
 	}
 
+	// todo-0: look for ways to speed this scan up. Is there a way to only grab .md files up front?
 	private async scanDirectory(dirPath: string): Promise<void> {
 		try {
 			const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });

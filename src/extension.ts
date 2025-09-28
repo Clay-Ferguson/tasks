@@ -601,6 +601,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Clear all filters command
+	const clearFiltersCommand = vscode.commands.registerCommand('task-manager.clearFilters', async () => {
+		taskProvider.clearFilters();
+		vscode.window.showInformationMessage('All filters cleared');
+	});
+
 	// Date extension commands
 	const addDayCommand = vscode.commands.registerCommand('task-manager.addDay', async (item) => {
 		await addTimeToTask(item, 1, 'day', taskProvider);
@@ -660,6 +666,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(aboutCommand);
 	context.subscriptions.push(configureNewTaskFolderCommand);
 	context.subscriptions.push(configureHashtagsCommand);
+	context.subscriptions.push(clearFiltersCommand);
 	context.subscriptions.push(addDayCommand);
 	context.subscriptions.push(addWeekCommand);
 	context.subscriptions.push(addMonthCommand);
