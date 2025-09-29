@@ -48,7 +48,6 @@
         "title": "All Tasks",
         "icon": "$(list-unordered)"
       },
-
       {
         "command": "task-manager.insertTimestamp",
         "title": "Insert Timestamp"
@@ -261,17 +260,22 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "test:unit": "mocha",
+    "test:all": "yarn test:unit && yarn test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.103.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/vscode": "^1.103.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
-    "eslint": "^9.32.0",
-    "typescript": "^5.9.2",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
-  }
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.32.0",
+    "mocha": "^11.7.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

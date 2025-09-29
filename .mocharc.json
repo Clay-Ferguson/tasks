@@ -1,0 +1,8 @@
+{
+  "ui": "bdd",
+  "timeout": 10000,
+  "color": true,
+  "require": ["ts-node/register"],
+  "extensions": ["ts"],
+  "spec": ["src/test/unit/**/*.test.ts"]
+}
