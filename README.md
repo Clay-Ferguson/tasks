@@ -2,7 +2,23 @@
 
 **Use Markdown files as your Calendar/Task Manager, in a time-series Panel**
 
-A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple candidate hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
+A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple ca#### Tips
+- If you can't find a completed task, ensure Completion filter isn't set to Not Completed.
+- To review only recently urgent items: select Due Soon + Priority 1.
+- Use Due Today for focus on today's tasks only.
+- Use Future Due Dates to plan ahead without current distractions.
+- Want everything regardless of status? Use Any Priority + Any Time + Any Completion and clear search.
+
+#### Complete Temporal Coverage
+The view filters provide complete, non-overlapping coverage of all possible due dates:
+- **Overdue**: Tasks past their due date (excludes today)
+- **Due Today**: Tasks due specifically today
+- **Due Soon**: Tasks due today through next 3 days (excludes overdue)
+- **Future Due Dates**: Tasks due tomorrow and beyond
+- **Any Time**: All tasks regardless of due date
+
+#### Rationale
+The view filters are designed to provide clear temporal boundaries without overlap, allowing you to focus on specific time horizons for your work. Unlike traditional systems, overdue tasks are separate from "due soon" to avoid cluttering your forward-looking planning view. hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
@@ -32,6 +48,7 @@ Filename: `plan-sprint.md` → Displays as: `🟠 (3) Plan sprint` (if 3 days ou
 - Days Indicator: `(5)` in 5 days, `(0)` today, `(-2)` overdue by 2, `(?)` no date
 - ⚠️ added after icon if overdue
 - ✅ indicates `#done`
+- **Filter Coverage**: Overdue (past) ← Due Today (present) ← Due Soon (next 3 days) ← Future Due Dates (beyond)
 
 ### When to Use This vs a Calendar
 - Need fast capture in plain files, not structured tasks
@@ -256,23 +273,31 @@ The panel offers a single unified filtering system plus search to refine what yo
 - Open search via the 🔍 icon (search text combines with the currently selected filters until cleared).
 - Panel title shows current state (e.g., `Due Soon - P1`, or `SEARCH - P* - 'bug'`).
 
-#### Filter Groups (10 Options Total)
+#### Filter Groups (12 Options Total)
 1. (Priority) Any Priority – show every priority level
 2. (Priority) Priority 1 – `#p1` (High priority)
 3. (Priority) Priority 2 – `#p2` (Medium priority)
 4. (Priority) Priority 3 – `#p3` (Low priority)
 5. (View) Any Time – no due-date restriction
-6. (View) Due Soon – due in next 3 days OR already overdue
-7. (View) Overdue – past due date only (⚠️ shown)
-8. (Completion) Any Completion – completed + not completed
-9. (Completion) Done – contains `#done`
-10. (Completion) Not Done – no `#done` (default)
+6. (View) Due Soon – due today through next 3 days (excludes overdue)
+7. (View) Due Today – due only today
+8. (View) Future Due Dates – due tomorrow and beyond
+9. (View) Overdue – past due date only (⚠️ shown)
+10. (Completion) Any Completion – completed + not completed
+11. (Completion) Done – contains `#done`
+12. (Completion) Not Done – no `#done` (default)
 
 #### Using Filters
 1. Click the filter (funnel) icon and pick one option in any group; previous selection in that group is replaced.
-2. Combine one selection from each group for precise views (e.g., High + Due Soon + Not Done).
+2. Combine one selection from each group for precise views (e.g., High + Due Today + Not Done).
 3. Changing filters clears any active search automatically.
-4. Overdue tasks always show the warning icon ⚠️; they also appear in Due Soon (by design).
+4. Overdue tasks always show the warning icon ⚠️.
+
+**Filter Usage Examples:**
+- **Due Today + Priority 1**: Focus on high-priority tasks due today
+- **Due Soon + Any Priority**: See what's coming up in the next few days
+- **Future Due Dates + Priority 2**: Plan medium-priority work for later
+- **Overdue + Any Priority**: Review what needs immediate attention
 
 #### Search
 | Aspect | Behavior |
@@ -287,6 +312,8 @@ The panel offers a single unified filtering system plus search to refine what yo
 - Locate tasks by keyword (client, feature, bug ID)
 - Narrow to a sprint window by searching a date fragment (e.g., `2025/09`)
 - Combine with Priority 1 to focus critical items containing a term
+- Use with Due Today to find specific tasks due today
+- Combine with Future Due Dates to plan specific upcoming work
 
 #### Tips
 - If you can’t find a completed task, ensure Completion filter isn’t set to Not Completed.

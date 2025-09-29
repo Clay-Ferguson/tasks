@@ -4,35 +4,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
-
-/**
- * Finds a folder in the workspace root that matches a wildcard pattern.
- * The wildcard is assumed to be a leading asterisk representing a numeric prefix.
- * @param workspaceRoot The workspace root path
- * @param wildcardPattern The pattern like "*My Tasks"
- * @returns The actual folder name if found, or null if not found
- */
-function findFolderByWildcard(workspaceRoot: string, wildcardPattern: string): string | null {
-	if (!wildcardPattern.startsWith('*')) {
-		return wildcardPattern; // No wildcard, return as-is
-	}
-
-	const suffix = wildcardPattern.substring(1); // Remove the leading asterisk
-	
-	try {
-		const entries = fs.readdirSync(workspaceRoot, { withFileTypes: true });
-		
-		for (const entry of entries) {
-			if (entry.isDirectory() && entry.name.endsWith(suffix)) {
-				return entry.name;
-			}
-		}
-	} catch (error) {
-		console.error('Error scanning workspace root for wildcard folder:', error);
-	}
-
-	return null; // No matching folder found
-}
+import { findFolderByWildcard, parseTimestamp, formatTimestamp, getAllConfiguredHashtags, containsAnyConfiguredHashtag } from './utils';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view
@@ -54,7 +26,7 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			// Check if it's a task file
 			const primaryHashtag = taskProvider.getPrimaryHashtag();
 			const hasTaskHashtag = primaryHashtag === 'all-tags'
-				? taskProvider.containsAnyConfiguredHashtag(contentString)
+				? containsAnyConfiguredHashtag(contentString)
 				: contentString.includes(primaryHashtag);
 			const isDoneTask = contentString.includes('#done');
 			
@@ -112,7 +84,7 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 	}
 
 	const filePath = item.resourceUri.fsPath;
-	
+
 	try {
 		// Read the file content
 		const content = fs.readFileSync(filePath, 'utf8');
@@ -157,22 +129,7 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		}
 		
 		// Format the new timestamp based on original format
-		const year = newDate.getFullYear();
-		const month = String(newDate.getMonth() + 1).padStart(2, '0');
-		const day = String(newDate.getDate()).padStart(2, '0');
-		
-		let newTimestampString: string;
-		if (isLongFormat) {
-			// Preserve long format with time (now standard month-first)
-			const hours12 = newDate.getHours() % 12 || 12;
-			const minutes = String(newDate.getMinutes()).padStart(2, '0');
-			const seconds = String(newDate.getSeconds()).padStart(2, '0');
-			const ampm = newDate.getHours() >= 12 ? 'PM' : 'AM';
-			newTimestampString = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
-		} else {
-			// Preserve short format (date-only) in new standard
-			newTimestampString = `[${month}/${day}/${year}]`;
-		}
+		const newTimestampString = formatTimestamp(newDate, isLongFormat);
 		
 		// Replace the timestamp in the file content
 		const newContent = content.replace(currentTimestampString, newTimestampString);
@@ -187,41 +144,6 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		
 	} catch (error) {
 		vscode.window.showErrorMessage(`Failed to update task: ${error}`);
-	}
-}
-
-/**
- * Parses a timestamp string into a Date object
- * @param timestampString The timestamp string to parse
- * @returns Date object or null if parsing failed
- */
-function parseTimestamp(timestampString: string): Date | null {
-	try {
-		const cleanTimestamp = timestampString.replace(/[\[\]]/g, '');
-		const parts = cleanTimestamp.split(' ');
-		const datePart = parts[0]; // MM/DD/YYYY
-		let timePart = '12:00:00';
-		let ampmPart = 'PM';
-		if (parts.length === 3) {
-			timePart = parts[1];
-			ampmPart = parts[2];
-		}
-		const comps = datePart.split('/');
-		if (comps.length !== 3 || comps[2].length !== 4) {
-			return null;
-		}
-		const month = comps[0];
-		const day = comps[1];
-		const year = comps[2];
-		const dateString = `${month}/${day}/${year} ${timePart} ${ampmPart}`;
-		const date = new Date(dateString);
-		if (isNaN(date.getTime())) {
-			return null;
-		}
-		return date;
-	} catch (error) {
-		console.error(`Error parsing timestamp ${timestampString}:`, error);
-		return null;
 	}
 }
 
@@ -273,15 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Generate current timestamp in the required format
 		const now = new Date();
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, '0');
-		const day = String(now.getDate()).padStart(2, '0');
-		const hours12 = now.getHours() % 12 || 12;
-		const minutes = String(now.getMinutes()).padStart(2, '0');
-		const seconds = String(now.getSeconds()).padStart(2, '0');
-		const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-		
-		const timestamp = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+		const timestamp = formatTimestamp(now);
 
 		// Insert timestamp at cursor position
 		const position = editor.selection.active;
@@ -382,6 +296,14 @@ export function activate(context: vscode.ExtensionContext) {
 				value: 'view:Due Soon' 
 			},
 			{ 
+				label: `${currentView === 'Due Today' ? '$(check) Due Today' : '$(circle-outline) Due Today'}`, 
+				value: 'view:Due Today' 
+			},
+			{ 
+				label: `${currentView === 'Future Due Dates' ? '$(check) Future Due Dates' : '$(circle-outline) Future Due Dates'}`, 
+				value: 'view:Future Due Dates' 
+			},
+			{ 
 				label: `${currentView === 'Overdue' ? '$(check) Overdue' : '$(circle-outline) Overdue'}`, 
 				value: 'view:Overdue' 
 			},
@@ -415,6 +337,10 @@ export function activate(context: vscode.ExtensionContext) {
 					taskProvider.refresh();
 				} else if (value === 'Due Soon') {
 					taskProvider.refreshDueSoon();
+				} else if (value === 'Due Today') {
+					taskProvider.refreshDueToday();
+				} else if (value === 'Future Due Dates') {
+					taskProvider.refreshFutureDueDates();
 				} else if (value === 'Overdue') {
 					taskProvider.refreshOverdue();
 				}
@@ -506,15 +432,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Generate timestamp
 		const now = new Date();
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, '0');
-		const day = String(now.getDate()).padStart(2, '0');
-		const hours12 = now.getHours() % 12 || 12;
-		const minutes = String(now.getMinutes()).padStart(2, '0');
-		const seconds = String(now.getSeconds()).padStart(2, '0');
-		const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-		
-		const timestamp = `[${month}/${day}/${year} ${String(hours12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}]`;
+		const timestamp = formatTimestamp(now);
 
 		// Create task content, with two blank lines because user will want to start editing at beginning of file.
 		const primaryHashtag = taskProvider.getPrimaryHashtag();
