@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags } from './utils';
 import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile, TIMESTAMP_REGEX } from './pure-utils';
+import { ViewFilter } from './constants';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -122,7 +123,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private taskFiles: TaskFileItem[] = [];
 	private scannedFiles: Set<string> = new Set(); // Track scanned files to prevent duplicates
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
-	private currentFilter: string = 'All'; // Track current filter state
+	private currentFilter: ViewFilter = ViewFilter.All; // Track current filter state
 	private currentPriorityFilter: string = 'all'; // Track current priority filter
 	private currentSearchQuery: string = ''; // Track current search query
 	private completionFilter: 'all' | 'completed' | 'not-completed' = 'not-completed'; // Track completion filter
@@ -192,7 +193,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		return this.currentPriorityFilter;
 	}
 
-	getCurrentViewFilter(): string {
+	getCurrentViewFilter(): ViewFilter {
 		return this.currentFilter;
 	}
 
@@ -290,7 +291,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	refresh(): void {
-		this.currentFilter = 'All';
+		this.currentFilter = ViewFilter.All;
 		this.currentSearchQuery = ''; // Clear search when refreshing
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -301,7 +302,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	refreshDueSoon(): void {
-		this.currentFilter = 'Due Soon';
+		this.currentFilter = ViewFilter.DueSoon;
 		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -312,7 +313,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	refreshDueToday(): void {
-		this.currentFilter = 'Due Today';
+		this.currentFilter = ViewFilter.DueToday;
 		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -323,7 +324,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	refreshFutureDueDates(): void {
-		this.currentFilter = 'Future Due Dates';
+		this.currentFilter = ViewFilter.FutureDueDates;
 		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -334,7 +335,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	refreshOverdue(): void {
-		this.currentFilter = 'Overdue';
+		this.currentFilter = ViewFilter.Overdue;
 		this.currentSearchQuery = ''; // Clear search when switching filters
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -366,9 +367,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
+
 	searchTasks(query: string): void {
 		this.currentSearchQuery = query.toLowerCase();
-		this.currentFilter = 'Search';
+		this.currentFilter = ViewFilter.Search;
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.applyFiltersToExistingData().then(() => {
@@ -379,8 +381,8 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	clearSearch(): void {
 		this.currentSearchQuery = '';
-		if (this.currentFilter === 'Search') {
-			this.currentFilter = 'All';
+		if (this.currentFilter === ViewFilter.Search) {
+			this.currentFilter = ViewFilter.All;
 		}
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
@@ -393,7 +395,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	clearFilters(): void {
 		// Reset all filters to their default "all" states
 		this.currentPriorityFilter = 'all';
-		this.currentFilter = 'All';
+		this.currentFilter = ViewFilter.All;
 		this.completionFilter = 'all';
 		this.currentSearchQuery = '';
 		this.currentPrimaryHashtag = 'all-tags';
@@ -433,7 +435,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 
 			// 3. Time range: Only show if not 'All' (the default/no-filtering state)
-			if (this.currentFilter !== 'All') {
+			if (this.currentFilter !== ViewFilter.All) {
 				titleParts.push(this.currentFilter.toUpperCase());
 			}
 
@@ -479,7 +481,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		const now = new Date();
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-		if (this.currentFilter === 'Due Soon') {
+		if (this.currentFilter === ViewFilter.DueSoon) {
 			const threeDaysFromNow = new Date();
 			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 			threeDaysFromNow.setHours(23, 59, 59, 999);
@@ -487,19 +489,19 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp >= today && taskFile.timestamp <= threeDaysFromNow
 			);
-		} else if (this.currentFilter === 'Due Today') {
+		} else if (this.currentFilter === ViewFilter.DueToday) {
 			// Filter by due today only
 			const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
 			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp >= today && taskFile.timestamp <= endOfToday
 			);
-		} else if (this.currentFilter === 'Future Due Dates') {
+		} else if (this.currentFilter === ViewFilter.FutureDueDates) {
 			// Filter by future due dates only (after today)
 			const tomorrowStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp >= tomorrowStart
 			);
-		} else if (this.currentFilter === 'Overdue') {
+		} else if (this.currentFilter === ViewFilter.Overdue) {
 			filteredTaskData = this.taskFileData.filter(taskFile =>
 				taskFile.timestamp < today
 			);

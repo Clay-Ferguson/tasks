@@ -6,6 +6,7 @@ import * as path from 'path';
 import { TaskProvider } from './model';
 import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
 import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
+import { ViewFilter } from './constants';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view
@@ -289,24 +290,24 @@ export function activate(context: vscode.ExtensionContext) {
 			{ label: '', value: 'separator', kind: vscode.QuickPickItemKind.Separator } as any,
 			// View group
 			{ 
-				label: `${currentView === 'All' ? `$(check) ${div} Any Time ${div}` : `$(circle-outline) ${div} Any Time ${div}`}`, 
-				value: 'view:All' 
+				label: `${currentView === ViewFilter.All ? `$(check) ${div} Any Time ${div}` : `$(circle-outline) ${div} Any Time ${div}`}`, 
+				value: `view:${ViewFilter.All}` 
 			},
 			{ 
-				label: `${currentView === 'Due Soon' ? '$(check) Due Soon' : '$(circle-outline) Due Soon'}`, 
-				value: 'view:Due Soon' 
+				label: `${currentView === ViewFilter.DueSoon ? `$(check) ${ViewFilter.DueSoon}` : `$(circle-outline) ${ViewFilter.DueSoon}`}`, 
+				value: `view:${ViewFilter.DueSoon}` 
 			},
 			{ 
-				label: `${currentView === 'Due Today' ? '$(check) Due Today' : '$(circle-outline) Due Today'}`, 
-				value: 'view:Due Today' 
+				label: `${currentView === ViewFilter.DueToday ? `$(check) ${ViewFilter.DueToday}` : `$(circle-outline) ${ViewFilter.DueToday}`}`, 
+				value: `view:${ViewFilter.DueToday}` 
 			},
 			{ 
-				label: `${currentView === 'Future Due Dates' ? '$(check) Future Due Dates' : '$(circle-outline) Future Due Dates'}`, 
-				value: 'view:Future Due Dates' 
+				label: `${currentView === ViewFilter.FutureDueDates ? `$(check) ${ViewFilter.FutureDueDates}` : `$(circle-outline) ${ViewFilter.FutureDueDates}`}`, 
+				value: `view:${ViewFilter.FutureDueDates}` 
 			},
 			{ 
-				label: `${currentView === 'Overdue' ? '$(check) Overdue' : '$(circle-outline) Overdue'}`, 
-				value: 'view:Overdue' 
+				label: `${currentView === ViewFilter.Overdue ? `$(check) ${ViewFilter.Overdue}` : `$(circle-outline) ${ViewFilter.Overdue}`}`, 
+				value: `view:${ViewFilter.Overdue}` 
 			},
 			// Second separator
 			{ label: '', value: 'separator2', kind: vscode.QuickPickItemKind.Separator } as any,
@@ -334,16 +335,25 @@ export function activate(context: vscode.ExtensionContext) {
 			if (type === 'priority') {
 				taskProvider.filterByPriority(value);
 			} else if (type === 'view') {
-				if (value === 'All') {
-					taskProvider.refresh();
-				} else if (value === 'Due Soon') {
-					taskProvider.refreshDueSoon();
-				} else if (value === 'Due Today') {
-					taskProvider.refreshDueToday();
-				} else if (value === 'Future Due Dates') {
-					taskProvider.refreshFutureDueDates();
-				} else if (value === 'Overdue') {
-					taskProvider.refreshOverdue();
+				const viewValue = value as ViewFilter;
+				switch (viewValue) {
+					case ViewFilter.All:
+						taskProvider.refresh();
+						break;
+					case ViewFilter.DueSoon:
+						taskProvider.refreshDueSoon();
+						break;
+					case ViewFilter.DueToday:
+						taskProvider.refreshDueToday();
+						break;
+					case ViewFilter.FutureDueDates:
+						taskProvider.refreshFutureDueDates();
+						break;
+					case ViewFilter.Overdue:
+						taskProvider.refreshOverdue();
+						break;
+					default:
+						break;
 				}
 			} else if (type === 'completion') {
 				if (value === 'all' || value === 'completed' || value === 'not-completed') {
