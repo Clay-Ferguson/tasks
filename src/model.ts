@@ -247,7 +247,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			this.taskFileData[taskIndex] = updatedTask;
 
 			// Re-build the task files display (similar to scanForTaskFiles but without scanning)
-			await this.rebuildTaskDisplay();
+			await this.applyFiltersToExistingData();
 
 			// Fire the tree data change event
 			this._onDidChangeTreeData.fire();
@@ -290,105 +290,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 	}
 
-	/**
-	 * Rebuilds the task display from existing taskFileData without scanning
-	 * This is used by updateSingleTask to avoid a full workspace scan
-	 */
-	private async rebuildTaskDisplay(): Promise<void> {
-		// Apply the same filtering logic as scanForTaskFiles
-		let filteredTaskData = this.taskFileData; // &&&
-		const now = new Date();
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-		if (this.currentFilter === 'Due Soon') {
-			// Filter by due soon (within 3 days, excluding overdue)
-			const threeDaysFromNow = new Date();
-			threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-			threeDaysFromNow.setHours(23, 59, 59, 999); // End of the day
-
-			filteredTaskData = this.taskFileData.filter(taskFile =>
-				taskFile.timestamp >= today && taskFile.timestamp <= threeDaysFromNow
-			);
-		} else if (this.currentFilter === 'Due Today') {
-			// Filter by due today only
-			const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-			filteredTaskData = this.taskFileData.filter(taskFile =>
-				taskFile.timestamp >= today && taskFile.timestamp <= endOfToday
-			);
-		} else if (this.currentFilter === 'Future Due Dates') {
-			// Filter by future due dates only (after today)
-			const tomorrowStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-			filteredTaskData = this.taskFileData.filter(taskFile =>
-				taskFile.timestamp >= tomorrowStart
-			);
-		} else if (this.currentFilter === 'Overdue') {
-			// Filter by overdue only (past due date, excluding today)
-			filteredTaskData = this.taskFileData.filter(taskFile =>
-				taskFile.timestamp < today
-			);
-		}
-
-		// Apply priority filter if not "all"
-		if (this.currentPriorityFilter !== 'all') {
-			filteredTaskData = filteredTaskData.filter(taskFile =>
-				taskFile.priority === this.currentPriorityFilter
-			);
-		}
-
-		// Sort task files by timestamp (chronological order)
-		filteredTaskData.sort((a, b) => {
-			return a.timestamp.getTime() - b.timestamp.getTime();
-		});
-
-		// Create tree items from sorted task files (same logic as scanForTaskFiles)
-		this.taskFiles = filteredTaskData.map(taskFile => {
-			const daysDiff = getDaysDifference(taskFile.timestamp);
-			const isOverdue = taskFile.timestamp < today;
-			const isFarFuture = isFarFutureDate(taskFile.timestamp);
-			const isTask = taskFile.tagsInFile.has('#task');
-			
-			const icon = getIconForTaskFile(taskFile);
-
-			// Use checkmark for completed items, but only if they have "#task" hashtag
-			const displayText = this.getFileDisplayText(taskFile.filePath);
-			// Show days difference in parentheses at the beginning of the task description
-			// For overdue items, show warning icon immediately after priority icon
-			let label = isOverdue && isTask
-				? `${icon}⚠️ (${daysDiff}) ${displayText}`
-				: `${icon} (${daysDiff}) ${displayText}`;
-
-			const treeItem = new TaskFileItem(
-				label,
-				taskFile.fileUri,
-				vscode.TreeItemCollapsibleState.None,
-				{
-					command: 'vscode.open',
-					title: 'Open File',
-					arguments: [taskFile.fileUri]
-				}
-			);
-
-			// Create markdown tooltip
-			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
-
-			// Set context value based on timestamp presence and far future status
-			// Check if task has a real timestamp (not the default 2050 one)
-			const hasRealTimestamp = taskFile.timestamp.getFullYear() < 2050;
-
-			if (isFarFuture && !hasRealTimestamp) {
-				treeItem.contextValue = 'farFutureTask';
-			} else if (hasRealTimestamp) {
-				treeItem.contextValue = 'taskWithTimestamp';
-			} else {
-				treeItem.contextValue = 'taskWithoutTimestamp';
-			}
-
-			return treeItem;
-		});
-
-		// Update context to show/hide the tree view
-		vscode.commands.executeCommand('setContext', 'workspaceHasTaskFiles', this.taskFiles.length > 0);
-	}
 
 	refresh(): void {
 		this.currentFilter = 'All';
