@@ -345,7 +345,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
-		filterByPriority(priorityFilter: PriorityTag): void {
+	filterByPriority(priorityFilter: PriorityTag): void {
 		this.currentPriorityFilter = priorityFilter;
 		this.currentSearchQuery = ''; // Clear search when changing priority filter
 		this.updateTreeViewTitle();
@@ -366,7 +366,6 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			this._onDidChangeTreeData.fire();
 		});
 	}
-
 
 	searchTasks(query: string): void {
 		this.currentSearchQuery = query.toLowerCase();
@@ -452,7 +451,6 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (completionDisplay) {
 				titleParts.push(completionDisplay);
 			}
-
 
 			// 5. Search query: Only show if there's an active search
 			if (this.currentSearchQuery) {

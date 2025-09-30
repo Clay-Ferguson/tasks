@@ -21,7 +21,7 @@ export function parseTimestamp(timestampString: string): Date | null {
 		if (!timestampString.startsWith('[') || !timestampString.endsWith(']')) {
 			return null;
 		}
-		
+
 		const cleanTimestamp = timestampString.slice(1, -1); // Remove brackets from start and end
 		const parts = cleanTimestamp.split(' ');
 		const datePart = parts[0]; // MM/DD/YYYY
@@ -43,19 +43,19 @@ export function parseTimestamp(timestampString: string): Date | null {
 		if (isNaN(date.getTime())) {
 			return null;
 		}
-		
+
 		// Validate that the parsed date actually matches the input components
 		// JavaScript Date constructor can adjust invalid dates (e.g., Feb 31 → Mar 3)
 		const parsedMonth = date.getMonth() + 1; // getMonth() is 0-indexed
 		const parsedDay = date.getDate();
 		const parsedYear = date.getFullYear();
-		
-		if (parsedMonth !== parseInt(month) || 
-		    parsedDay !== parseInt(day) || 
-		    parsedYear !== parseInt(year)) {
+
+		if (parsedMonth !== parseInt(month) ||
+			parsedDay !== parseInt(day) ||
+			parsedYear !== parseInt(year)) {
 			return null;
 		}
-		
+
 		return date;
 	} catch (error) {
 		console.error(`Error parsing timestamp ${timestampString}:`, error);

@@ -213,7 +213,7 @@ describe('formatTimestamp', () => {
 			const originalDate = new Date(2025, 8, 30); // September 30, 2025
 			const formatted = formatTimestamp(originalDate, false);
 			const parsed = parseTimestamp(formatted);
-			
+
 			assert.ok(parsed instanceof Date);
 			assert.strictEqual(parsed!.getFullYear(), originalDate.getFullYear());
 			assert.strictEqual(parsed!.getMonth(), originalDate.getMonth());
@@ -224,7 +224,7 @@ describe('formatTimestamp', () => {
 			const originalDate = new Date(2025, 8, 30, 14, 30, 45); // September 30, 2025 2:30:45 PM
 			const formatted = formatTimestamp(originalDate, true);
 			const parsed = parseTimestamp(formatted);
-			
+
 			assert.ok(parsed instanceof Date);
 			assert.strictEqual(parsed!.getTime(), originalDate.getTime());
 		});
@@ -285,10 +285,10 @@ describe('getDaysDifference', () => {
 			const today = new Date();
 			const taskDate1 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 0, 0, 0); // 5 days from now, midnight
 			const taskDate2 = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5, 23, 59, 59); // 5 days from now, almost midnight
-			
+
 			const result1 = getDaysDifference(taskDate1);
 			const result2 = getDaysDifference(taskDate2);
-			
+
 			assert.strictEqual(result1, result2);
 			assert.strictEqual(result1, 5);
 		});
@@ -299,11 +299,11 @@ describe('getDaysDifference', () => {
 			// Test with known dates to verify calculation
 			const date1 = new Date(2025, 8, 30); // September 30, 2025
 			const date2 = new Date(2025, 9, 1);  // October 1, 2025
-			
+
 			// Calculate expected difference: Oct 1 - Sep 30 = 1 day
 			// But we need to mock properly or calculate based on actual current date
 			const result = getDaysDifference(date2);
-			
+
 			// Since we can't easily mock the current date, let's just verify the type and that it's reasonable
 			assert.strictEqual(typeof result, 'number');
 			// The actual result depends on when this test runs, so we just verify it's a number
@@ -313,11 +313,11 @@ describe('getDaysDifference', () => {
 			// Test year boundary with a more predictable approach
 			const date1 = new Date(2025, 11, 31); // December 31, 2025
 			const date2 = new Date(2026, 0, 1);   // January 1, 2026
-			
+
 			// Instead of trying to mock, let's test the logic with today's date
 			const today = new Date();
 			const nextYear = new Date(today.getFullYear() + 1, 0, 1); // January 1 of next year
-			
+
 			const result = getDaysDifference(nextYear);
 			assert.strictEqual(typeof result, 'number');
 			// Should be positive since it's in the future
@@ -330,7 +330,7 @@ describe('getDaysDifference', () => {
 			const today = new Date();
 			const futureDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()); // 1 year from now
 			const result = getDaysDifference(futureDate);
-			
+
 			assert.strictEqual(typeof result, 'number');
 			assert.ok(typeof result === 'number' && result >= 365 && result <= 366); // Account for leap years
 		});
@@ -339,7 +339,7 @@ describe('getDaysDifference', () => {
 			const today = new Date();
 			const pastDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()); // 1 year ago
 			const result = getDaysDifference(pastDate);
-			
+
 			assert.strictEqual(typeof result, 'number');
 			assert.ok(typeof result === 'number' && result <= -365 && result >= -366); // Account for leap years
 		});
@@ -450,7 +450,7 @@ describe('getRelativeDateString', () => {
 			// Test crossing month boundary with a more realistic approach
 			const result1 = getRelativeDateString(new Date(2025, 8, 30)); // September 30, 2025
 			const result2 = getRelativeDateString(new Date(2025, 9, 1));  // October 1, 2025
-			
+
 			// Both should return valid relative date strings
 			assert.strictEqual(typeof result1, 'string');
 			assert.strictEqual(typeof result2, 'string');
@@ -462,7 +462,7 @@ describe('getRelativeDateString', () => {
 			// Test year boundary with a more realistic approach
 			const result1 = getRelativeDateString(new Date(2025, 11, 31)); // December 31, 2025
 			const result2 = getRelativeDateString(new Date(2026, 0, 1));   // January 1, 2026
-			
+
 			// Both should return valid relative date strings
 			assert.strictEqual(typeof result1, 'string');
 			assert.strictEqual(typeof result2, 'string');
@@ -483,10 +483,10 @@ describe('getRelativeDateString', () => {
 			const today = new Date();
 			const sameDayMorning = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 0, 0);
 			const sameDayEvening = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 20, 0, 0);
-			
+
 			const result1 = getRelativeDateString(sameDayMorning);
 			const result2 = getRelativeDateString(sameDayEvening);
-			
+
 			assert.strictEqual(result1, result2);
 			assert.strictEqual(result1, 'Due today');
 		});
