@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags } from './utils';
 import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile, TIMESTAMP_REGEX } from './pure-utils';
-import { ViewFilter, PriorityTag } from './constants';
+import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -126,7 +126,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private currentFilter: ViewFilter = ViewFilter.All; // Track current filter state
 	private currentPriorityFilter: PriorityTag = PriorityTag.Any; // Track current priority filter
 	private currentSearchQuery: string = ''; // Track current search query
-	private completionFilter: 'all' | 'completed' | 'not-completed' = 'not-completed'; // Track completion filter
+	private completionFilter: CompletionFilter = CompletionFilter.NotCompleted; // Track completion filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
 	private cachedPrimaryHashtag: string | null = null; // Cache for primary hashtag
@@ -197,7 +197,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		return this.currentFilter;
 	}
 
-	getCompletionFilter(): 'all' | 'completed' | 'not-completed' {
+	getCompletionFilter(): CompletionFilter {
 		return this.completionFilter;
 	}
 
@@ -356,7 +356,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
-	setCompletionFilter(filter: 'all' | 'completed' | 'not-completed'): void {
+	setCompletionFilter(filter: CompletionFilter): void {
 		this.completionFilter = filter;
 		this.currentSearchQuery = ''; // Clear search when changing completed filter
 		this.updateTreeViewTitle();
@@ -396,7 +396,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// Reset all filters to their default "all" states
 		this.currentPriorityFilter = PriorityTag.Any;
 		this.currentFilter = ViewFilter.All;
-		this.completionFilter = 'all';
+		this.completionFilter = CompletionFilter.Any;
 		this.currentSearchQuery = '';
 		this.currentPrimaryHashtag = 'all-tags';
 
@@ -441,9 +441,9 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			// 4. Completion status: Only show if not 'not-completed' (the default state)			
 			let completionDisplay = '';
-			if (this.completionFilter === 'all') {
+			if (this.completionFilter === CompletionFilter.Any) {
 				// leave blank
-			} else if (this.completionFilter === 'completed') {
+			} else if (this.completionFilter === CompletionFilter.Completed) {
 				completionDisplay = 'DONE';
 			}
 			else {
@@ -852,11 +852,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const isDoneTask = content.includes('#done');			// Include files based on completion filter
 			let includeTask = false;
 			if (hasTaskHashtag) {
-				if (this.completionFilter === 'all') {
+				if (this.completionFilter === CompletionFilter.Any) {
 					includeTask = true;
-				} else if (this.completionFilter === 'completed') {
+				} else if (this.completionFilter === CompletionFilter.Completed) {
 					includeTask = isDoneTask;
-				} else if (this.completionFilter === 'not-completed') {
+				} else if (this.completionFilter === CompletionFilter.NotCompleted) {
 					includeTask = !isDoneTask;
 				}
 			}

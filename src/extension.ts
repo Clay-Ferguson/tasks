@@ -6,7 +6,7 @@ import * as path from 'path';
 import { TaskProvider } from './model';
 import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
 import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
-import { ViewFilter, PriorityTag } from './constants';
+import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view
@@ -36,11 +36,11 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			let includeTask = false;
 			if (hasTaskHashtag) {
 				const completionFilter = taskProvider.getCompletionFilter();
-				if (completionFilter === 'all') {
+				if (completionFilter === CompletionFilter.Any) {
 					includeTask = true;
-				} else if (completionFilter === 'completed') {
+				} else if (completionFilter === CompletionFilter.Completed) {
 					includeTask = isDoneTask;
-				} else if (completionFilter === 'not-completed') {
+				} else if (completionFilter === CompletionFilter.NotCompleted) {
 					includeTask = !isDoneTask;
 				}
 			}
@@ -312,17 +312,17 @@ export function activate(context: vscode.ExtensionContext) {
 			// Second separator
 			{ label: '', value: 'separator2', kind: vscode.QuickPickItemKind.Separator } as any,
 			// Completion group
-			{ 
-				label: `${completionFilter === 'all' ? `$(check) ${div} Any Completion ${div}` : `$(circle-outline) ${div} Any Completion ${div}`}`, 
-				value: 'completion:all' 
+			{
+				label: `${completionFilter === CompletionFilter.Any ? `$(check) ${div} Any Completion ${div}` : `$(circle-outline) ${div} Any Completion ${div}`}`,
+				value: `completion:${CompletionFilter.Any}`
 			},
-			{ 
-				label: `${completionFilter === 'completed' ? '$(check) Done' : '$(circle-outline) Done'}`, 
-				value: 'completion:completed' 
+			{
+				label: `${completionFilter === CompletionFilter.Completed ? '$(check) Done' : '$(circle-outline) Done'}`,
+				value: `completion:${CompletionFilter.Completed}`
 			},
-			{ 
-				label: `${completionFilter === 'not-completed' ? '$(check) Not Done' : '$(circle-outline) Not Done'}`, 
-				value: 'completion:not-completed' 
+			{
+				label: `${completionFilter === CompletionFilter.NotCompleted ? '$(check) Not Done' : '$(circle-outline) Not Done'}`,
+				value: `completion:${CompletionFilter.NotCompleted}`
 			}
 		];
 
@@ -356,8 +356,8 @@ export function activate(context: vscode.ExtensionContext) {
 						break;
 				}
 			} else if (type === 'completion') {
-				if (value === 'all' || value === 'completed' || value === 'not-completed') {
-					taskProvider.setCompletionFilter(value as 'all' | 'completed' | 'not-completed');
+				if (value === CompletionFilter.Any || value === CompletionFilter.Completed || value === CompletionFilter.NotCompleted) {
+					taskProvider.setCompletionFilter(value as CompletionFilter);
 				}
 			}
 		}
