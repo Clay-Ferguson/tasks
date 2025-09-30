@@ -2,6 +2,7 @@
  * Pure utility functions that don't depend on VS Code API.
  * These can be easily unit tested in a regular Node.js environment.
  */
+import { PriorityTag } from './constants';
 
 /**
  * Regular expression to match timestamp strings in the format [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
@@ -143,7 +144,7 @@ export function isFarFuture(taskDate: Date): boolean {
  * Determines the emoji icon to display for a task file based on its properties.
  */
 export function getIconForTaskFile(taskFile: {
-	priority: 'p1' | 'p2' | 'p3' | '';
+	priority: PriorityTag.High | PriorityTag.Medium | PriorityTag.Low | '';
 	isCompleted: boolean;
 	tagsInFile: Set<string>;
 }): string {
@@ -158,11 +159,11 @@ export function getIconForTaskFile(taskFile: {
 	if (isTask) {
 		if (taskFile.isCompleted) {
 			icon = '✅';
-		} else if (taskFile.priority === 'p1') {
+		} else if (taskFile.priority === PriorityTag.High) {
 			icon = '🔴';
-		} else if (taskFile.priority === 'p2') {
+		} else if (taskFile.priority === PriorityTag.Medium) {
 			icon = '🟠';
-		} else if (taskFile.priority === 'p3') {
+		} else if (taskFile.priority === PriorityTag.Low) {
 			icon = '🔵';
 		}
 	}

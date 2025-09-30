@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags } from './utils';
 import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile, TIMESTAMP_REGEX } from './pure-utils';
-import { ViewFilter } from './constants';
+import { ViewFilter, PriorityTag } from './constants';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -16,7 +16,7 @@ export class TaskFile {
 		public readonly fileUri: vscode.Uri,
 		public readonly timestamp: Date,
 		public readonly timestampString: string,
-		public readonly priority: 'p1' | 'p2' | 'p3' | '',
+		public readonly priority: PriorityTag.High | PriorityTag.Medium | PriorityTag.Low | '',
 		public readonly isCompleted: boolean = false,
 		public readonly tagsInFile: Set<string> = new Set<string>()
 	) { }
@@ -124,7 +124,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private scannedFiles: Set<string> = new Set(); // Track scanned files to prevent duplicates
 	private taskFileData: TaskFile[] = []; // Store task files with parsed timestamps
 	private currentFilter: ViewFilter = ViewFilter.All; // Track current filter state
-	private currentPriorityFilter: string = 'all'; // Track current priority filter
+	private currentPriorityFilter: PriorityTag = PriorityTag.Any; // Track current priority filter
 	private currentSearchQuery: string = ''; // Track current search query
 	private completionFilter: 'all' | 'completed' | 'not-completed' = 'not-completed'; // Track completion filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
@@ -135,15 +135,15 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	/**
 	 * Detects the priority level from file content
 	 * @param content The file content to analyze
-	 * @returns The priority level ('p1', 'p2', 'p3', or '' for no priority tag)
+	 * @returns The priority level (PriorityTag.High/Medium/Low, or '' for no priority tag)
 	 */
-	private detectPriorityFromContent(content: string): 'p1' | 'p2' | 'p3' | '' {
-		if (content.includes('#p1')) {
-			return 'p1';
-		} else if (content.includes('#p2')) {
-			return 'p2';
-		} else if (content.includes('#p3')) {
-			return 'p3';
+	private detectPriorityFromContent(content: string): PriorityTag.High | PriorityTag.Medium | PriorityTag.Low | '' {
+		if (content.includes(`#${PriorityTag.High}`)) {
+			return PriorityTag.High;
+		} else if (content.includes(`#${PriorityTag.Medium}`)) {
+			return PriorityTag.Medium;
+		} else if (content.includes(`#${PriorityTag.Low}`)) {
+			return PriorityTag.Low;
 		}
 		// No priority tag found - return empty string so white circle is shown
 		return '';
@@ -189,7 +189,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	}
 
 	// Getter methods for current filter states
-	getCurrentPriorityFilter(): string {
+	getCurrentPriorityFilter(): PriorityTag {
 		return this.currentPriorityFilter;
 	}
 
@@ -345,7 +345,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		});
 	}
 
-	filterByPriority(priorityFilter: string): void {
+		filterByPriority(priorityFilter: PriorityTag): void {
 		this.currentPriorityFilter = priorityFilter;
 		this.currentSearchQuery = ''; // Clear search when changing priority filter
 		this.updateTreeViewTitle();
@@ -394,7 +394,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	clearFilters(): void {
 		// Reset all filters to their default "all" states
-		this.currentPriorityFilter = 'all';
+		this.currentPriorityFilter = PriorityTag.Any;
 		this.currentFilter = ViewFilter.All;
 		this.completionFilter = 'all';
 		this.currentSearchQuery = '';
@@ -429,7 +429,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			}
 
 			// 2. Priority: Only show if not 'all' (the default/no-filtering state)
-			if (this.currentPriorityFilter !== 'all') {
+			if (this.currentPriorityFilter !== PriorityTag.Any) {
 				const priorityDisplay = this.currentPriorityFilter.toUpperCase();
 				titleParts.push(priorityDisplay);
 			}
@@ -508,7 +508,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 
 		// Apply priority filter if not "all"
-		if (this.currentPriorityFilter !== 'all') {
+		if (this.currentPriorityFilter !== PriorityTag.Any) {
 			filteredTaskData = filteredTaskData.filter(taskFile =>
 				taskFile.priority === this.currentPriorityFilter
 			);
@@ -675,7 +675,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		}
 
 		// Apply priority filter if not "all"
-		if (this.currentPriorityFilter !== 'all') {
+		if (this.currentPriorityFilter !== PriorityTag.Any) {
 			filteredTaskData = filteredTaskData.filter(taskFile =>
 				taskFile.priority === this.currentPriorityFilter
 			);

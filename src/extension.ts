@@ -6,7 +6,7 @@ import * as path from 'path';
 import { TaskProvider } from './model';
 import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
 import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
-import { ViewFilter } from './constants';
+import { ViewFilter, PriorityTag } from './constants';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view
@@ -271,20 +271,20 @@ export function activate(context: vscode.ExtensionContext) {
 		const options = [
 			// Priority group
 			{ 
-				label: `${currentPriority === 'all' ? `$(check) ${div} Any Priority ${div}` : `$(circle-outline) ${div} Any Priority ${div}`}`, 
-				value: 'priority:all' 
+				label: `${currentPriority === PriorityTag.Any ? `$(check) ${div} Any Priority ${div}` : `$(circle-outline) ${div} Any Priority ${div}`}`, 
+				value: `priority:${PriorityTag.Any}` 
 			},
 			{ 
-				label: `${currentPriority === 'p1' ? '$(check) Priority 1' : '$(circle-outline) Priority 1'}`, 
-				value: 'priority:p1' 
+				label: `${currentPriority === PriorityTag.High ? '$(check) Priority 1' : '$(circle-outline) Priority 1'}`, 
+				value: `priority:${PriorityTag.High}` 
 			},
 			{ 
-				label: `${currentPriority === 'p2' ? '$(check) Priority 2' : '$(circle-outline) Priority 2'}`, 
-				value: 'priority:p2' 
+				label: `${currentPriority === PriorityTag.Medium ? '$(check) Priority 2' : '$(circle-outline) Priority 2'}`, 
+				value: `priority:${PriorityTag.Medium}` 
 			},
 			{ 
-				label: `${currentPriority === 'p3' ? '$(check) Priority 3' : '$(circle-outline) Priority 3'}`, 
-				value: 'priority:p3' 
+				label: `${currentPriority === PriorityTag.Low ? '$(check) Priority 3' : '$(circle-outline) Priority 3'}`, 
+				value: `priority:${PriorityTag.Low}` 
 			},
 			// Separator
 			{ label: '', value: 'separator', kind: vscode.QuickPickItemKind.Separator } as any,
@@ -333,7 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (selected && selected.value !== 'separator' && selected.value !== 'separator2') {
 			const [type, value] = selected.value.split(':');
 			if (type === 'priority') {
-				taskProvider.filterByPriority(value);
+				taskProvider.filterByPriority(value as PriorityTag);
 			} else if (type === 'view') {
 				const viewValue = value as ViewFilter;
 				switch (viewValue) {
@@ -455,7 +455,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 			hashtagToUse = hashtags.length > 0 ? hashtags[0] : '#task'; // fallback to #task if no hashtags configured
 		}
-		const taskContent = `\n\n${hashtagToUse} ${timestamp} #p3`;
+		const taskContent = `\n\n${hashtagToUse} ${timestamp} #${PriorityTag.Low}`;
 
 		try {
 			// Write the file
