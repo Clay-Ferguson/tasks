@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags } from './utils';
-import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile } from './pure-utils';
+import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile, TIMESTAMP_REGEX } from './pure-utils';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -862,8 +862,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (includeTask) {
 				// Look for timestamp, but it's optional now
 				// Only support the new standard format: [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
-				// todo-0: check if this regex is common enough to have a global variable
-				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
+				const timestampRegex = TIMESTAMP_REGEX;
 				const timestampMatch = content.match(timestampRegex);
 
 				let parsedTimestamp: Date;

@@ -4,6 +4,11 @@
  */
 
 /**
+ * Regular expression to match timestamp strings in the format [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
+ */
+export const TIMESTAMP_REGEX = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
+
+/**
  * Parses a timestamp string into a Date object.
  * Supports formats: [MM/DD/YYYY] and [MM/DD/YYYY HH:MM:SS AM/PM]
  * @param timestampString The timestamp string to parse

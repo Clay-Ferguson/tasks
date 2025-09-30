@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
 import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
-import { parseTimestamp, formatTimestamp } from './pure-utils';
+import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view
@@ -47,7 +47,7 @@ function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskPr
 			if (includeTask) {
 				// Look for timestamp in the file
 				// Only support new standard [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
-				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
+				const timestampRegex = TIMESTAMP_REGEX;
 				const timestampMatch = contentString.match(timestampRegex);
 				
 				if (timestampMatch) {
@@ -91,7 +91,7 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 		const content = fs.readFileSync(filePath, 'utf8');
 		
 		// Find existing timestamp
-		const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
+		const timestampRegex = TIMESTAMP_REGEX;
 		const timestampMatch = content.match(timestampRegex);
 		
 		if (!timestampMatch) {
