@@ -169,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Set up configuration change listener to clear primary hashtag cache
 	const configChangeListener = vscode.workspace.onDidChangeConfiguration((event) => {
-		if (event.affectsConfiguration('task-manager.primaryHashtag')) {
+		if (event.affectsConfiguration('timex.primaryHashtag')) {
 			taskProvider.clearPrimaryHashtagCache();
 			// Refresh the task view to reflect the new primary hashtag
 			taskProvider.refresh();
@@ -188,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register commands
 
-	const insertTimestampCommand = vscode.commands.registerCommand('task-manager.insertTimestamp', () => {
+	const insertTimestampCommand = vscode.commands.registerCommand('timex.insertTimestamp', () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			vscode.window.showErrorMessage('No active editor found');
@@ -208,12 +208,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage(`Timestamp inserted: ${timestamp}`);
 	});
 
-	const selectPrimaryHashtagCommand = vscode.commands.registerCommand('task-manager.selectPrimaryHashtag', async () => {
+	const selectPrimaryHashtagCommand = vscode.commands.registerCommand('timex.selectPrimaryHashtag', async () => {
 		// Get current primary hashtag from task provider (which handles runtime overrides)
 		const currentPrimaryHashtag = taskProvider.getPrimaryHashtag();
 		
 		// Get configuration for available hashtags
-		const config = vscode.workspace.getConfiguration('task-manager');
+		const config = vscode.workspace.getConfiguration('timex');
 		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
 		
 		// Parse hashtags from comma-delimited string
@@ -262,7 +262,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const filterPriorityCommand = vscode.commands.registerCommand('task-manager.filterPriority', async () => {
+	const filterPriorityCommand = vscode.commands.registerCommand('timex.filterPriority', async () => {
 		// Get current filter states to show checkmarks
 		const currentPriority = taskProvider.getCurrentPriorityFilter();
 		const currentView = taskProvider.getCurrentViewFilter();
@@ -363,7 +363,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const searchTasksCommand = vscode.commands.registerCommand('task-manager.searchTasks', async () => {
+	const searchTasksCommand = vscode.commands.registerCommand('timex.searchTasks', async () => {
 		const searchQuery = await vscode.window.showInputBox({
 			placeHolder: 'Enter search text...',
 			prompt: 'Search task filenames and content',
@@ -383,7 +383,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const newTaskCommand = vscode.commands.registerCommand('task-manager.newTask', async () => {
+	const newTaskCommand = vscode.commands.registerCommand('timex.newTask', async () => {
 		// Get the workspace folder
 		if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
 			vscode.window.showErrorMessage('No workspace folder found');
@@ -394,7 +394,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const rootPath = workspaceFolder.uri.fsPath;
 
 		// Get configured task folder
-		const config = vscode.workspace.getConfiguration('task-manager');
+		const config = vscode.workspace.getConfiguration('timex');
 		const taskFolderSetting = config.get<string>('newTaskFolder', '');
 		
 		// Determine the target folder
@@ -450,7 +450,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// If in "all-tags" mode, use the first configured hashtag instead of "all-tags"
 		let hashtagToUse = primaryHashtag;
 		if (primaryHashtag === 'all-tags') {
-			const config = vscode.workspace.getConfiguration('task-manager');
+			const config = vscode.workspace.getConfiguration('timex');
 			const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
 			const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 			hashtagToUse = hashtags.length > 0 ? hashtags[0] : '#task'; // fallback to #task if no hashtags configured
@@ -475,7 +475,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const aboutCommand = vscode.commands.registerCommand('task-manager.about', async () => {
+	const aboutCommand = vscode.commands.registerCommand('timex.about', async () => {
 		try {
 			// Get the path to the README.md in the extension's installation directory
 			const extensionPath = context.extensionPath;
@@ -489,9 +489,9 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Command to quickly configure the folder used for new tasks
-	const configureNewTaskFolderCommand = vscode.commands.registerCommand('task-manager.configureNewTaskFolder', async () => {
+	const configureNewTaskFolderCommand = vscode.commands.registerCommand('timex.configureNewTaskFolder', async () => {
 		// Read current value
-		const config = vscode.workspace.getConfiguration('task-manager');
+		const config = vscode.workspace.getConfiguration('timex');
 		const current = config.get<string>('newTaskFolder', '');
 
 		const value = await vscode.window.showInputBox({
@@ -513,9 +513,9 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Command to configure hashtags
-	const configureHashtagsCommand = vscode.commands.registerCommand('task-manager.configureHashtags', async () => {
+	const configureHashtagsCommand = vscode.commands.registerCommand('timex.configureHashtags', async () => {
 		// Read current value
-		const config = vscode.workspace.getConfiguration('task-manager');
+		const config = vscode.workspace.getConfiguration('timex');
 		const current = config.get<string>('hashtags', '#task, #todo, #note');
 
 		const value = await vscode.window.showInputBox({
@@ -536,46 +536,46 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const configureIncludedGlobsCommand = vscode.commands.registerCommand('task-manager.configureIncludedGlobs', async () => {
+	const configureIncludedGlobsCommand = vscode.commands.registerCommand('timex.configureIncludedGlobs', async () => {
 		try {
-			await vscode.commands.executeCommand('workbench.action.openSettings', 'task-manager.includeGlobs');
+			await vscode.commands.executeCommand('workbench.action.openSettings', 'timex.includeGlobs');
 		} catch (err) {
 			vscode.window.showErrorMessage(`Failed to open settings for included paths: ${err}`);
 		}
 	});
 
-	const configureExcludedGlobsCommand = vscode.commands.registerCommand('task-manager.configureExcludedGlobs', async () => {
+	const configureExcludedGlobsCommand = vscode.commands.registerCommand('timex.configureExcludedGlobs', async () => {
 		try {
-			await vscode.commands.executeCommand('workbench.action.openSettings', 'task-manager.excludeGlobs');
+			await vscode.commands.executeCommand('workbench.action.openSettings', 'timex.excludeGlobs');
 		} catch (err) {
 			vscode.window.showErrorMessage(`Failed to open settings for excluded paths: ${err}`);
 		}
 	});
 
 	// Clear all filters command
-	const clearFiltersCommand = vscode.commands.registerCommand('task-manager.clearFilters', async () => {
+	const clearFiltersCommand = vscode.commands.registerCommand('timex.clearFilters', async () => {
 		taskProvider.clearFilters();
 		vscode.window.showInformationMessage('All filters cleared');
 	});
 
 	// Date extension commands
-	const addDayCommand = vscode.commands.registerCommand('task-manager.addDay', async (item) => {
+	const addDayCommand = vscode.commands.registerCommand('timex.addDay', async (item) => {
 		await addTimeToTask(item, 1, 'day', taskProvider);
 	});
 
-	const addWeekCommand = vscode.commands.registerCommand('task-manager.addWeek', async (item) => {
+	const addWeekCommand = vscode.commands.registerCommand('timex.addWeek', async (item) => {
 		await addTimeToTask(item, 1, 'week', taskProvider);
 	});
 
-	const addMonthCommand = vscode.commands.registerCommand('task-manager.addMonth', async (item) => {
+	const addMonthCommand = vscode.commands.registerCommand('timex.addMonth', async (item) => {
 		await addTimeToTask(item, 1, 'month', taskProvider);
 	});
 
-	const addYearCommand = vscode.commands.registerCommand('task-manager.addYear', async (item) => {
+	const addYearCommand = vscode.commands.registerCommand('timex.addYear', async (item) => {
 		await addTimeToTask(item, 1, 'year', taskProvider);
 	});
 
-	const deleteTaskCommand = vscode.commands.registerCommand('task-manager.deleteTask', async (item) => {
+	const deleteTaskCommand = vscode.commands.registerCommand('timex.deleteTask', async (item) => {
 		if (!item || !item.resourceUri) {
 			vscode.window.showErrorMessage('No task selected');
 			return;

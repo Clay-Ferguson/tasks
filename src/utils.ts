@@ -34,7 +34,7 @@ export function findFolderByWildcard(workspaceRoot: string, wildcardPattern: str
  * Reads all configured task hashtags from workspace settings.
  */
 export function getAllConfiguredHashtags(): string[] {
-	const config = vscode.workspace.getConfiguration('task-manager');
+	const config = vscode.workspace.getConfiguration('timex');
 	const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
 	return hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 }

@@ -138,11 +138,11 @@ Settings (File > Preferences > Settings > Extensions > Timex):
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `task-manager.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
-| `task-manager.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
-| `task-manager.newTaskFolder` | (empty) | Optional wildcard path for new item files. If starts with `*`, suffix match is used. |
-| `task-manager.includeGlobs` | `**/*.md` | Glob patterns included when scanning the workspace. Empty list falls back to the default. |
-| `task-manager.excludeGlobs` | `**/node_modules/**`, `**/.git/**`, `**/.vscode/**`, `**/out/**`, `**/dist/**`, `**/build/**`, `**/.next/**`, `**/target/**` | Glob patterns skipped while scanning for markdown items. Empty list scans every folder. |
+| `timex.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
+| `timex.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
+| `timex.newTaskFolder` | (empty) | Optional wildcard path for new item files. If starts with `*`, suffix match is used. |
+| `timex.includeGlobs` | `**/*.md` | Glob patterns included when scanning the workspace. Empty list falls back to the default. |
+| `timex.excludeGlobs` | `**/node_modules/**`, `**/.git/**`, `**/.vscode/**`, `**/out/**`, `**/dist/**`, `**/build/**`, `**/.next/**`, `**/target/**` | Glob patterns skipped while scanning for markdown items. Empty list scans every folder. |
 
 Behavior Notes:
 
@@ -152,7 +152,7 @@ Behavior Notes:
 4. If `primaryHashtag` is not present in `hashtags`, it is still honored (useful for temporary experiments).
 5. Adjust `includeGlobs` / `excludeGlobs` to fine-tune which files are scanned (e.g., add project-specific directories or alternate extensions).
 
-- **`task-manager.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
+- **`timex.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
   - **Type**: String
   - **Default**: `""` (workspace root)
   - **Example values**: `"tasks"`, `"todo"`, `"projects/tasks"`
@@ -163,7 +163,7 @@ You can also set or change this value without opening Settings via the panel:
 - Open the panel, then either:
   - Click the panel title menu (three dots) and select "Folder for New Tasks...", or
   - Right‑click inside the panel (empty space or an item) and choose "Folder for New Tasks...".
-This opens an input box and updates the `task-manager.newTaskFolder` setting directly.
+This opens an input box and updates the `timex.newTaskFolder` setting directly.
 
 Need to adjust which folders are scanned? Use **Configure Excluded Paths...** from the same menu to jump straight to the list editor in Settings.
 Want to expand beyond markdown? Use **Configure Included Paths...** to add additional glob patterns (e.g., `**/*.mdx`).
@@ -182,7 +182,7 @@ Core:
 - `#p1`, `#p2`, `#p3` – High / Medium / Low priority (absence = treated as `#p1`).
 
 Custom:
-- Add your own in `task-manager.hashtags` (e.g. `#meeting, #research`). Switch via tag icon to focus a specific stream without changing underlying files.
+- Add your own in `timex.hashtags` (e.g. `#meeting, #research`). Switch via tag icon to focus a specific stream without changing underlying files.
 
 Notes:
 - Only one primary hashtag is active at a time.
@@ -196,8 +196,8 @@ Notes:
 
 #### Primary Hashtag Selector (Tag Icon)
 - Location: Panel title bar (leftmost icon with a tag symbol).
-- Action: Opens a QuickPick of configured candidate hashtags (from `task-manager.hashtags`).
-- Behavior: Selecting one updates `task-manager.primaryHashtag`, refreshes the list, and rewrites title bar prefix.
+- Action: Opens a QuickPick of configured candidate hashtags (from `timex.hashtags`).
+- Behavior: Selecting one updates `timex.primaryHashtag`, refreshes the list, and rewrites title bar prefix.
 - Visual: Currently selected hashtag shows a checkmark; others a hollow circle.
 
 #### Items Panel
@@ -222,7 +222,7 @@ This feature is perfect for quickly finding specific tasks in large workspaces w
 
 Fastest capture path—click + and start typing.
 
-**Configuring Task Folder**: You can specify where new task files are created by setting the `task-manager.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
+**Configuring Task Folder**: You can specify where new task files are created by setting the `timex.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
 #### Right-Click Context Menu
 
@@ -234,7 +234,7 @@ Fastest capture path—click + and start typing.
 **In Panel:**
 - **Location**: Right-click on any item in the panel
 - **Options Available**:
-  - **Folder for New Tasks...**: Quickly set or change the folder path used when creating new tasks via the + button (updates the `task-manager.newTaskFolder` setting)
+  - **Folder for New Tasks...**: Quickly set or change the folder path used when creating new tasks via the + button (updates the `timex.newTaskFolder` setting)
   - **Date Extension Commands**: +Day, +Week, +Month, +Year (for tasks with timestamps)
   - **Delete Task**: Permanently removes the task file from your workspace
   - **About**: Shows extension information

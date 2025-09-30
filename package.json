@@ -25,22 +25,22 @@
     "configuration": {
       "title": "Timex",
       "properties": {
-        "task-manager.newTaskFolder": {
+        "timex.newTaskFolder": {
           "type": "string",
           "default": "",
           "description": "Folder where new task files will be created (relative to workspace root). Leave empty to create in workspace root."
         },
-        "task-manager.primaryHashtag": {
+        "timex.primaryHashtag": {
           "type": "string",
           "default": "#task",
           "description": "The primary hashtag used to identify task files. Files containing this hashtag will be considered tasks."
         },
-        "task-manager.hashtags": {
+        "timex.hashtags": {
           "type": "string",
           "default": "#task, #todo, #note",
           "description": "Comma-separated list of hashtags that can be used to identify task files."
         },
-        "task-manager.includeGlobs": {
+        "timex.includeGlobs": {
           "type": "array",
           "items": {
             "type": "string"
@@ -51,7 +51,7 @@
           "description": "Glob patterns to include when scanning for task markdown files.",
           "scope": "workspace"
         },
-        "task-manager.excludeGlobs": {
+        "timex.excludeGlobs": {
           "type": "array",
           "items": {
             "type": "string"
@@ -73,82 +73,82 @@
     },
     "commands": [
       {
-        "command": "task-manager.showAllTasks",
+        "command": "timex.showAllTasks",
         "title": "All Tasks",
         "icon": "$(list-unordered)"
       },
       {
-        "command": "task-manager.insertTimestamp",
+        "command": "timex.insertTimestamp",
         "title": "Insert Timestamp"
       },
       {
-        "command": "task-manager.selectPrimaryHashtag",
+        "command": "timex.selectPrimaryHashtag",
         "title": "Select Primary Hashtag",
         "icon": "$(tag)"
       },
       {
-        "command": "task-manager.filterPriority",
+        "command": "timex.filterPriority",
         "title": "Filter Tasks",
         "icon": "$(filter)"
       },
       {
-        "command": "task-manager.searchTasks",
+        "command": "timex.searchTasks",
         "title": "Search Tasks",
         "icon": "$(search)"
       },
       {
-        "command": "task-manager.newTask",
+        "command": "timex.newTask",
         "title": "New Task",
         "icon": "$(add)"
       },
       {
-        "command": "task-manager.about",
+        "command": "timex.about",
         "title": "About Timex...",
         "icon": "$(info)"
       },
       {
-        "command": "task-manager.configureNewTaskFolder",
+        "command": "timex.configureNewTaskFolder",
         "title": "Folder for New Tasks...",
         "icon": "$(root-folder)"
       },
       {
-        "command": "task-manager.configureHashtags",
+        "command": "timex.configureHashtags",
         "title": "Configure Hashtags...",
         "icon": "$(tag)"
       },
       {
-        "command": "task-manager.configureIncludedGlobs",
+        "command": "timex.configureIncludedGlobs",
         "title": "Configure Included Paths...",
         "icon": "$(filter-filled)"
       },
       {
-        "command": "task-manager.configureExcludedGlobs",
+        "command": "timex.configureExcludedGlobs",
         "title": "Configure Excluded Paths...",
         "icon": "$(exclude)"
       },
       {
-        "command": "task-manager.clearFilters",
+        "command": "timex.clearFilters",
         "title": "Clear Filters",
         "icon": "$(clear-all)"
       },
       {
-        "command": "task-manager.addDay",
+        "command": "timex.addDay",
         "title": "+Day"
       },
       {
-        "command": "task-manager.addWeek",
+        "command": "timex.addWeek",
         "title": "+Week"
       },
       {
-        "command": "task-manager.addMonth",
+        "command": "timex.addMonth",
         "title": "+Month"
       },
       {
-        "command": "task-manager.addYear",
+        "command": "timex.addYear",
         "title": "+Year"
       },
       {
-        "command": "task-manager.deleteTask",
+        "command": "timex.deleteTask",
         "title": "Delete Task/File",
         "icon": "$(trash)"
       }
@@ -173,147 +173,147 @@
     "menus": {
       "view/title": [
         {
-          "command": "task-manager.selectPrimaryHashtag",
+          "command": "timex.selectPrimaryHashtag",
           "when": "view == taskExplorer",
           "group": "navigation@0"
         },
         {
-          "command": "task-manager.filterPriority",
+          "command": "timex.filterPriority",
           "when": "view == taskExplorer",
           "group": "navigation@1"
         },
         {
-          "command": "task-manager.searchTasks",
+          "command": "timex.searchTasks",
           "when": "view == taskExplorer",
           "group": "navigation@5"
         },
         {
-          "command": "task-manager.newTask",
+          "command": "timex.newTask",
           "when": "view == taskExplorer",
           "group": "navigation@6"
         },
         {
-          "command": "task-manager.configureNewTaskFolder",
+          "command": "timex.configureNewTaskFolder",
           "when": "view == taskExplorer",
           "group": "0_settings@1"
         },
         {
-          "command": "task-manager.configureHashtags",
+          "command": "timex.configureHashtags",
           "when": "view == taskExplorer",
           "group": "0_settings@2"
         },
         {
-          "command": "task-manager.configureIncludedGlobs",
+          "command": "timex.configureIncludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@3"
         },
         {
-          "command": "task-manager.configureExcludedGlobs",
+          "command": "timex.configureExcludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@4"
         },
         {
-          "command": "task-manager.clearFilters",
+          "command": "timex.clearFilters",
           "when": "view == taskExplorer",
           "group": "0_settings@5"
         },
         {
-          "command": "task-manager.about",
+          "command": "timex.about",
           "when": "view == taskExplorer",
           "group": "1_about"
         }
       ],
       "view/context": [
         {
-          "command": "task-manager.configureNewTaskFolder",
+          "command": "timex.configureNewTaskFolder",
           "when": "view == taskExplorer",
           "group": "0_settings@1"
         },
         {
-          "command": "task-manager.configureHashtags",
+          "command": "timex.configureHashtags",
           "when": "view == taskExplorer",
           "group": "0_settings@2"
         },
         {
-          "command": "task-manager.configureIncludedGlobs",
+          "command": "timex.configureIncludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@3"
         },
         {
-          "command": "task-manager.configureExcludedGlobs",
+          "command": "timex.configureExcludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@4"
         },
         {
-          "command": "task-manager.clearFilters",
+          "command": "timex.clearFilters",
           "when": "view == taskExplorer",
           "group": "0_settings@5"
         },
         {
-          "command": "task-manager.about",
+          "command": "timex.about",
           "when": "view == taskExplorer",
           "group": "1_about@1"
         }
       ],
       "view/item/context": [
         {
-          "command": "task-manager.addDay",
+          "command": "timex.addDay",
           "when": "view == taskExplorer && viewItem == taskWithTimestamp",
           "group": "1_dateExtension@1"
         },
         {
-          "command": "task-manager.addWeek",
+          "command": "timex.addWeek",
           "when": "view == taskExplorer && viewItem == taskWithTimestamp",
           "group": "1_dateExtension@2"
         },
         {
-          "command": "task-manager.addMonth",
+          "command": "timex.addMonth",
           "when": "view == taskExplorer && viewItem == taskWithTimestamp",
           "group": "1_dateExtension@3"
         },
         {
-          "command": "task-manager.addYear",
+          "command": "timex.addYear",
           "when": "view == taskExplorer && viewItem == taskWithTimestamp",
           "group": "1_dateExtension@4"
         },
         {
-          "command": "task-manager.deleteTask",
+          "command": "timex.deleteTask",
           "when": "view == taskExplorer",
           "group": "2_file@1"
         }
       ],
       "commandPalette": [
         {
-          "command": "task-manager.showAllTasks"
+          "command": "timex.showAllTasks"
         },
         {
-          "command": "task-manager.searchTasks"
+          "command": "timex.searchTasks"
         },
         {
-          "command": "task-manager.insertTimestamp"
+          "command": "timex.insertTimestamp"
         },
         {
-          "command": "task-manager.newTask"
+          "command": "timex.newTask"
         },
         {
-          "command": "task-manager.deleteTask"
+          "command": "timex.deleteTask"
         },
         {
-          "command": "task-manager.about"
+          "command": "timex.about"
         },
         {
-          "command": "task-manager.configureNewTaskFolder"
+          "command": "timex.configureNewTaskFolder"
         },
         {
-          "command": "task-manager.configureExcludedGlobs"
+          "command": "timex.configureExcludedGlobs"
         },
         {
-          "command": "task-manager.configureIncludedGlobs"
+          "command": "timex.configureIncludedGlobs"
         }
       ],
       "editor/context": [
         {
-          "command": "task-manager.insertTimestamp",
+          "command": "timex.insertTimestamp",
           "group": "z_commands"
         }
       ]

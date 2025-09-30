@@ -22,9 +22,9 @@ Lightweight VS Code extension that transforms markdown files into a chronologica
 
 ### Configuration (`package.json`)
 Three workspace settings:
-- `task-manager.primaryHashtag`: Active hashtag for filtering (default `#task`)
-- `task-manager.hashtags`: Available hashtags for picker (default `#task, #todo, #note`) 
-- `task-manager.newTaskFolder`: Target folder for new tasks (supports `*wildcard` patterns)
+- `timex.primaryHashtag`: Active hashtag for filtering (default `#task`)
+- `timex.hashtags`: Available hashtags for picker (default `#task, #todo, #note`) 
+- `timex.newTaskFolder`: Target folder for new tasks (supports `*wildcard` patterns)
 
 ## Task File Format Rules
 

@@ -174,7 +174,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 		// Fall back to cached configuration
 		if (this.cachedPrimaryHashtag === null) {
-			const config = vscode.workspace.getConfiguration('task-manager');
+			const config = vscode.workspace.getConfiguration('timex');
 			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
 		}
 		return this.cachedPrimaryHashtag;
@@ -754,7 +754,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private async scanMarkdownFilesOptimized(): Promise<void> {
 		// Use VS Code's built-in file search with glob pattern
 		// This excludes common directories automatically and is much faster
-		const config = vscode.workspace.getConfiguration('task-manager');
+		const config = vscode.workspace.getConfiguration('timex');
 		const configuredIncludeGlobs = config.get<string[]>('includeGlobs', Array.from(DEFAULT_INCLUDE_GLOBS));
 		const normalizedIncludeGlobs = configuredIncludeGlobs
 			.map(glob => glob.trim())
