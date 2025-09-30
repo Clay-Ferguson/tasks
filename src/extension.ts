@@ -488,67 +488,11 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	// Command to quickly configure the folder used for new tasks
-	const configureNewTaskFolderCommand = vscode.commands.registerCommand('timex.configureNewTaskFolder', async () => {
-		// Read current value
-		const config = vscode.workspace.getConfiguration('timex');
-		const current = config.get<string>('newTaskFolder', '');
-
-		const value = await vscode.window.showInputBox({
-			value: current,
-			placeHolder: 'Enter folder relative to workspace root (blank = root). Supports optional leading * wildcard.',
-			prompt: 'Folder where new task files will be created. Will be created if it does not exist (except wildcard).'
-		});
-
-		if (value === undefined) {
-			return; // user cancelled
-		}
-
+	const openSettingsCommand = vscode.commands.registerCommand('timex.openSettings', async () => {
 		try {
-			await config.update('newTaskFolder', value.trim(), vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage(value.trim() === '' ? 'New tasks will now be created in the workspace root.' : `New tasks will now be created in "${value.trim()}".`);
+			await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:Clay-Ferguson.timex');
 		} catch (err) {
-			vscode.window.showErrorMessage(`Failed to update setting: ${err}`);
-		}
-	});
-
-	// Command to configure hashtags
-	const configureHashtagsCommand = vscode.commands.registerCommand('timex.configureHashtags', async () => {
-		// Read current value
-		const config = vscode.workspace.getConfiguration('timex');
-		const current = config.get<string>('hashtags', '#task, #todo, #note');
-
-		const value = await vscode.window.showInputBox({
-			value: current,
-			placeHolder: 'Enter comma-separated hashtags (e.g., #task, #todo, #note)',
-			prompt: 'Hashtags that can be used to identify task files. Separate multiple hashtags with commas.'
-		});
-
-		if (value === undefined) {
-			return; // user cancelled
-		}
-
-		try {
-			await config.update('hashtags', value.trim(), vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage(`Hashtags updated to: "${value.trim()}"`);
-		} catch (err) {
-			vscode.window.showErrorMessage(`Failed to update hashtags setting: ${err}`);
-		}
-	});
-
-	const configureIncludedGlobsCommand = vscode.commands.registerCommand('timex.configureIncludedGlobs', async () => {
-		try {
-			await vscode.commands.executeCommand('workbench.action.openSettings', 'timex.includeGlobs');
-		} catch (err) {
-			vscode.window.showErrorMessage(`Failed to open settings for included paths: ${err}`);
-		}
-	});
-
-	const configureExcludedGlobsCommand = vscode.commands.registerCommand('timex.configureExcludedGlobs', async () => {
-		try {
-			await vscode.commands.executeCommand('workbench.action.openSettings', 'timex.excludeGlobs');
-		} catch (err) {
-			vscode.window.showErrorMessage(`Failed to open settings for excluded paths: ${err}`);
+			vscode.window.showErrorMessage(`Failed to open Timex settings: ${err}`);
 		}
 	});
 
@@ -615,10 +559,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(searchTasksCommand);
 	context.subscriptions.push(newTaskCommand);
 	context.subscriptions.push(aboutCommand);
-	context.subscriptions.push(configureNewTaskFolderCommand);
-	context.subscriptions.push(configureHashtagsCommand);
-	context.subscriptions.push(configureIncludedGlobsCommand);
-	context.subscriptions.push(configureExcludedGlobsCommand);
+	context.subscriptions.push(openSettingsCommand);
 	context.subscriptions.push(clearFiltersCommand);
 	context.subscriptions.push(addDayCommand);
 	context.subscriptions.push(addWeekCommand);
