@@ -1,13 +1,5 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { 
-	parseTimestamp, 
-	formatTimestamp, 
-	getRelativeDateString, 
-	getDaysDifference, 
-	isFarFuture, 
-	getIconForTaskFile 
-} from './pure-utils';
 
 /**
  * Finds a folder in the workspace root that matches a wildcard pattern.
@@ -70,13 +62,3 @@ export function findHashtagsInContent(content: string): Set<string> {
 
 	return foundHashtags;
 }
-
-// Re-export pure functions from pure-utils.ts
-export { 
-	parseTimestamp, 
-	formatTimestamp, 
-	getRelativeDateString, 
-	getDaysDifference, 
-	isFarFuture, 
-	getIconForTaskFile 
-};

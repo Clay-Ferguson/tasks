@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
-import { findFolderByWildcard, parseTimestamp, formatTimestamp, getAllConfiguredHashtags, containsAnyConfiguredHashtag } from './utils';
+import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
+import { parseTimestamp, formatTimestamp } from './pure-utils';
 
 /**
  * Sets up file system watcher for markdown files to automatically update task view

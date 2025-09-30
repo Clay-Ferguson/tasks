@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { title } from 'process';
-import { parseTimestamp, containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile } from './utils';
+import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHashtags } from './utils';
+import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile } from './pure-utils';
 
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
@@ -76,7 +76,6 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// If no day available, show just the timestamp
 		const codeContent = dayOfWeek ? `${timestampLine} -- ${dayOfWeek}` : timestampLine;
 		md.appendMarkdown(`*\n**${cleaned}**\n\n\`${codeContent}\``);
-
 		return md;
 	}
 
@@ -289,8 +288,6 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			// Don't throw - this is just a UX enhancement
 		}
 	}
-
-
 
 	refresh(): void {
 		this.currentFilter = 'All';
@@ -740,11 +737,11 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 * Optimized scanning using VS Code's findFiles API to get only .md files upfront
 	 */
 	private async scanMarkdownFilesOptimized(): Promise<void> {
-		// try {
 		// Use VS Code's built-in file search with glob pattern
 		// This excludes common directories automatically and is much faster
 		const mdFiles = await vscode.workspace.findFiles(
 			'**/*.md', // Include all .md files
+			// todo-0: These folders should be user-configurable
 			'{**/node_modules/**,**/.git/**,**/.vscode/**,**/out/**,**/dist/**,**/build/**,**/.next/**,**/target/**}', // Exclude common directories
 			undefined // No max results limit
 		);
@@ -761,13 +758,6 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			await this.scanFile(filePath);
 		}
-		// } catch (error) {
-		// 	console.error('Error during optimized markdown file scanning:', error);
-		// 	// Fallback to the original method if the optimized approach fails
-		// 	console.log('Falling back to directory-based scanning...');
-		// 	const workspaceFolder = vscode.workspace.workspaceFolders![0];
-		// 	await this.scanDirectory(workspaceFolder.uri.fsPath);
-		// }
 	}
 
 	// This currently-unused method is kept as fallback. But was replaced with the more efficient
@@ -872,6 +862,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			if (includeTask) {
 				// Look for timestamp, but it's optional now
 				// Only support the new standard format: [MM/DD/YYYY] or [MM/DD/YYYY HH:MM:SS AM/PM]
+				// todo-0: check if this regex is common enough to have a global variable
 				const timestampRegex = /\[[0-9]{2}\/[0-9]{2}\/20[0-9]{2}(?:\s[0-9]{2}:[0-9]{2}:[0-9]{2}\s(?:AM|PM))?\]/;
 				const timestampMatch = content.match(timestampRegex);
 
@@ -918,5 +909,4 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			console.error(`Error scanning file ${filePath}:`, error);
 		}
 	}
-
 }
