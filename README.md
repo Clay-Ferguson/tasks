@@ -141,6 +141,8 @@ Settings (File > Preferences > Settings > Extensions > Timex):
 | `task-manager.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
 | `task-manager.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
 | `task-manager.newTaskFolder` | (empty) | Optional wildcard path for new item files. If starts with `*`, suffix match is used. |
+| `task-manager.includeGlobs` | `**/*.md` | Glob patterns included when scanning the workspace. Empty list falls back to the default. |
+| `task-manager.excludeGlobs` | `**/node_modules/**`, `**/.git/**`, `**/.vscode/**`, `**/out/**`, `**/dist/**`, `**/build/**`, `**/.next/**`, `**/target/**` | Glob patterns skipped while scanning for markdown items. Empty list scans every folder. |
 
 Behavior Notes:
 
@@ -148,6 +150,7 @@ Behavior Notes:
 2. The list in `hashtags` does not auto‑switch context; it just feeds the picker.
 3. Remove or add custom hashtags (e.g. `#idea`, `#errand`) without restarting—selector reflects changes immediately.
 4. If `primaryHashtag` is not present in `hashtags`, it is still honored (useful for temporary experiments).
+5. Adjust `includeGlobs` / `excludeGlobs` to fine-tune which files are scanned (e.g., add project-specific directories or alternate extensions).
 
 - **`task-manager.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
   - **Type**: String
@@ -161,6 +164,9 @@ You can also set or change this value without opening Settings via the panel:
   - Click the panel title menu (three dots) and select "Folder for New Tasks...", or
   - Right‑click inside the panel (empty space or an item) and choose "Folder for New Tasks...".
 This opens an input box and updates the `task-manager.newTaskFolder` setting directly.
+
+Need to adjust which folders are scanned? Use **Configure Excluded Paths...** from the same menu to jump straight to the list editor in Settings.
+Want to expand beyond markdown? Use **Configure Included Paths...** to add additional glob patterns (e.g., `**/*.mdx`).
 
 To access settings:
 1. Open VSCode Settings (File → Preferences → Settings, or Ctrl+Shift+P then type "Preferences: Open Settings")

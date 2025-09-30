@@ -39,6 +39,35 @@
           "type": "string",
           "default": "#task, #todo, #note",
           "description": "Comma-separated list of hashtags that can be used to identify task files."
+        },
+        "task-manager.includeGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*.md"
+          ],
+          "description": "Glob patterns to include when scanning for task markdown files.",
+          "scope": "workspace"
+        },
+        "task-manager.excludeGlobs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/.vscode/**",
+            "**/out/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/.next/**",
+            "**/target/**"
+          ],
+          "description": "Glob patterns to exclude when scanning for task markdown files.",
+          "scope": "workspace"
         }
       }
     },
@@ -86,6 +115,16 @@
         "command": "task-manager.configureHashtags",
         "title": "Configure Hashtags...",
         "icon": "$(tag)"
+      },
+      {
+        "command": "task-manager.configureIncludedGlobs",
+        "title": "Configure Included Paths...",
+        "icon": "$(filter-filled)"
+      },
+      {
+        "command": "task-manager.configureExcludedGlobs",
+        "title": "Configure Excluded Paths...",
+        "icon": "$(exclude)"
       },
       {
         "command": "task-manager.clearFilters",
@@ -164,9 +203,19 @@
           "group": "0_settings@2"
         },
         {
-          "command": "task-manager.clearFilters",
+          "command": "task-manager.configureIncludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@3"
+        },
+        {
+          "command": "task-manager.configureExcludedGlobs",
+          "when": "view == taskExplorer",
+          "group": "0_settings@4"
+        },
+        {
+          "command": "task-manager.clearFilters",
+          "when": "view == taskExplorer",
+          "group": "0_settings@5"
         },
         {
           "command": "task-manager.about",
@@ -186,9 +235,19 @@
           "group": "0_settings@2"
         },
         {
-          "command": "task-manager.clearFilters",
+          "command": "task-manager.configureIncludedGlobs",
           "when": "view == taskExplorer",
           "group": "0_settings@3"
+        },
+        {
+          "command": "task-manager.configureExcludedGlobs",
+          "when": "view == taskExplorer",
+          "group": "0_settings@4"
+        },
+        {
+          "command": "task-manager.clearFilters",
+          "when": "view == taskExplorer",
+          "group": "0_settings@5"
         },
         {
           "command": "task-manager.about",
@@ -244,6 +303,12 @@
         },
         {
           "command": "task-manager.configureNewTaskFolder"
+        },
+        {
+          "command": "task-manager.configureExcludedGlobs"
+        },
+        {
+          "command": "task-manager.configureIncludedGlobs"
         }
       ],
       "editor/context": [

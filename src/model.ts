@@ -5,6 +5,19 @@ import { containsAnyConfiguredHashtag, findHashtagsInContent, getAllConfiguredHa
 import { parseTimestamp, getDaysDifference, isFarFuture as isFarFutureDate, getIconForTaskFile, TIMESTAMP_REGEX } from './pure-utils';
 import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
 
+const DEFAULT_INCLUDE_GLOBS: readonly string[] = ['**/*.md'];
+
+const DEFAULT_EXCLUDE_GLOBS: readonly string[] = [
+	'**/node_modules/**',
+	'**/.git/**',
+	'**/.vscode/**',
+	'**/out/**',
+	'**/dist/**',
+	'**/build/**',
+	'**/.next/**',
+	'**/target/**'
+];
+
 // Constants
 export const SCANNING_MESSAGE = 'Scanning workspace';
 
@@ -741,10 +754,30 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private async scanMarkdownFilesOptimized(): Promise<void> {
 		// Use VS Code's built-in file search with glob pattern
 		// This excludes common directories automatically and is much faster
+		const config = vscode.workspace.getConfiguration('task-manager');
+		const configuredIncludeGlobs = config.get<string[]>('includeGlobs', Array.from(DEFAULT_INCLUDE_GLOBS));
+		const normalizedIncludeGlobs = configuredIncludeGlobs
+			.map(glob => glob.trim())
+			.filter(glob => glob.length > 0);
+
+		const includePattern = normalizedIncludeGlobs.length === 0
+			? DEFAULT_INCLUDE_GLOBS[0]
+			: normalizedIncludeGlobs.length === 1
+				? normalizedIncludeGlobs[0]
+				: `{${normalizedIncludeGlobs.join(',')}}`;
+
+		const configuredExcludeGlobs = config.get<string[]>('excludeGlobs', Array.from(DEFAULT_EXCLUDE_GLOBS));
+		const normalizedExcludeGlobs = configuredExcludeGlobs
+			.map(glob => glob.trim())
+			.filter(glob => glob.length > 0);
+
+		const excludePattern = normalizedExcludeGlobs.length > 0
+			? `{${normalizedExcludeGlobs.join(',')}}`
+			: undefined;
+
 		const mdFiles = await vscode.workspace.findFiles(
-			'**/*.md', // Include all .md files
-			// todo-0: These folders should be user-configurable
-			'{**/node_modules/**,**/.git/**,**/.vscode/**,**/out/**,**/dist/**,**/build/**,**/.next/**,**/target/**}', // Exclude common directories
+			includePattern,
+			excludePattern, // Exclude configured directories
 			undefined // No max results limit
 		);
 

@@ -536,6 +536,22 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	const configureIncludedGlobsCommand = vscode.commands.registerCommand('task-manager.configureIncludedGlobs', async () => {
+		try {
+			await vscode.commands.executeCommand('workbench.action.openSettings', 'task-manager.includeGlobs');
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to open settings for included paths: ${err}`);
+		}
+	});
+
+	const configureExcludedGlobsCommand = vscode.commands.registerCommand('task-manager.configureExcludedGlobs', async () => {
+		try {
+			await vscode.commands.executeCommand('workbench.action.openSettings', 'task-manager.excludeGlobs');
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to open settings for excluded paths: ${err}`);
+		}
+	});
+
 	// Clear all filters command
 	const clearFiltersCommand = vscode.commands.registerCommand('task-manager.clearFilters', async () => {
 		taskProvider.clearFilters();
@@ -601,6 +617,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(aboutCommand);
 	context.subscriptions.push(configureNewTaskFolderCommand);
 	context.subscriptions.push(configureHashtagsCommand);
+	context.subscriptions.push(configureIncludedGlobsCommand);
+	context.subscriptions.push(configureExcludedGlobsCommand);
 	context.subscriptions.push(clearFiltersCommand);
 	context.subscriptions.push(addDayCommand);
 	context.subscriptions.push(addWeekCommand);
