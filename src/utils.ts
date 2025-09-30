@@ -1,6 +1,53 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 
+export const DEFAULT_INCLUDE_GLOBS = ['**/*.md'] as const;
+
+export const DEFAULT_EXCLUDE_GLOBS = [
+	'**/node_modules/**',
+	'**/.git/**',
+	'**/.vscode/**',
+	'**/out/**',
+	'**/dist/**',
+	'**/build/**',
+	'**/.next/**',
+	'**/target/**'
+] as const;
+
+function normalizeGlobList(globs: readonly string[]): string[] {
+	return globs
+		.map(glob => glob.trim())
+		.filter(glob => glob.length > 0);
+}
+
+function buildGlobPattern(normalizedGlobs: string[], fallback: string | undefined, wrapSingleInBraces: boolean): string | undefined {
+	if (normalizedGlobs.length === 0) {
+		return fallback;
+	}
+
+	if (normalizedGlobs.length === 1) {
+		return wrapSingleInBraces
+			? `{${normalizedGlobs[0]}}`
+			: normalizedGlobs[0];
+	}
+
+	return `{${normalizedGlobs.join(',')}}`;
+}
+
+export function getIncludeGlobPattern(): string {
+	const config = vscode.workspace.getConfiguration('timex');
+	const configuredIncludeGlobs = config.get<string[]>('includeGlobs', Array.from(DEFAULT_INCLUDE_GLOBS));
+	const normalizedIncludeGlobs = normalizeGlobList(configuredIncludeGlobs);
+	return buildGlobPattern(normalizedIncludeGlobs, DEFAULT_INCLUDE_GLOBS[0], false)!;
+}
+
+export function getExcludeGlobPattern(): string | undefined {
+	const config = vscode.workspace.getConfiguration('timex');
+	const configuredExcludeGlobs = config.get<string[]>('excludeGlobs', Array.from(DEFAULT_EXCLUDE_GLOBS));
+	const normalizedExcludeGlobs = normalizeGlobList(configuredExcludeGlobs);
+	return buildGlobPattern(normalizedExcludeGlobs, undefined, true);
+}
+
 /**
  * Finds a folder in the workspace root that matches a wildcard pattern.
  * The wildcard is assumed to be a leading asterisk representing a numeric prefix.

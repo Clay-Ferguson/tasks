@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
-import { findFolderByWildcard, containsAnyConfiguredHashtag } from './utils';
+import { findFolderByWildcard, containsAnyConfiguredHashtag, getIncludeGlobPattern } from './utils';
 import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
 import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
 
@@ -12,8 +12,9 @@ import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
  * Sets up file system watcher for markdown files to automatically update task view
  */
 function setupFileWatcher(context: vscode.ExtensionContext, taskProvider: TaskProvider): void {
-	// Create a file system watcher for markdown files
-	const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+	// Create a file system watcher for configured markdown include globs
+	const watcherPattern = getIncludeGlobPattern();
+	const watcher = vscode.workspace.createFileSystemWatcher(watcherPattern);
 	
 	// Handle file saves/changes
 	const onChangeDisposable = watcher.onDidChange(async (uri) => {
