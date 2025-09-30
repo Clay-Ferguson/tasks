@@ -447,6 +447,23 @@ The script includes error handling and will stop with a descriptive message if a
 - `typescript`: Language support
 - `@types/node`: Node.js type definitions
 
+### Testing
+
+This extension uses **Mocha** as the testing framework for unit tests. The testing infrastructure includes comprehensive test coverage for core utility functions like date parsing, timestamp formatting, and relative date calculations.
+
+For detailed information about running tests, test structure, and testing best practices, see **[TESTING.md](TESTING.md)**.
+
+Key testing commands:
+```bash
+# Run all unit tests
+npm run test:unit
+
+# Run tests in watch mode during development
+npm run test:watch
+```
+
+The test suite covers pure utility functions (date/time operations, parsing logic) that don't depend on the VS Code API, making them easily testable in a Node.js environment.
+
 ## Troubleshooting
 
 **Item not appearing?**
