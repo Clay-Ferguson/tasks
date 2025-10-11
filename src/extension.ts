@@ -152,8 +152,8 @@ async function addTimeToTask(item: any, amount: number, unit: 'day' | 'week' | '
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Timex extension is now active!');
 
-	// Create the tree data provider
-	const taskProvider = new TaskProvider();
+	// Create the tree data provider with context for state persistence
+	const taskProvider = new TaskProvider(context);
 
 	// Register the tree view
 	const treeView = vscode.window.createTreeView('taskExplorer', {

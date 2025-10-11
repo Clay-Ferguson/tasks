@@ -16,11 +16,6 @@
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
-  "files": [
-    "out/**",
-    "README.md",
-    "task-panel-screenshot.png"
-  ],
   "contributes": {
     "configuration": {
       "title": "Timex",

@@ -126,11 +126,50 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	private currentFilter: ViewFilter = ViewFilter.All; // Track current filter state
 	private currentPriorityFilter: PriorityTag = PriorityTag.Any; // Track current priority filter
 	private currentSearchQuery: string = ''; // Track current search query
-	private completionFilter: CompletionFilter = CompletionFilter.NotCompleted; // Track completion filter
+	private completionFilter: CompletionFilter = CompletionFilter.Any; // Track completion filter
 	private treeView: vscode.TreeView<TaskFileItem> | null = null;
 	private isScanning: boolean = false; // Track scanning state
 	private cachedPrimaryHashtag: string | null = null; // Cache for primary hashtag
 	private currentPrimaryHashtag: string | null = null; // Runtime override for primary hashtag
+	private context: vscode.ExtensionContext;
+
+	constructor(context: vscode.ExtensionContext) {
+		this.context = context;
+		this.loadFilterState();
+	}
+
+	/**
+	 * Load filter state from workspace storage
+	 */
+	private loadFilterState(): void {
+		const savedFilter = this.context.workspaceState.get<ViewFilter>('timex.currentFilter');
+		const savedPriorityFilter = this.context.workspaceState.get<PriorityTag>('timex.currentPriorityFilter');
+		const savedCompletionFilter = this.context.workspaceState.get<CompletionFilter>('timex.completionFilter');
+		const savedPrimaryHashtag = this.context.workspaceState.get<string>('timex.currentPrimaryHashtag');
+
+		if (savedFilter !== undefined) {
+			this.currentFilter = savedFilter;
+		}
+		if (savedPriorityFilter !== undefined) {
+			this.currentPriorityFilter = savedPriorityFilter;
+		}
+		if (savedCompletionFilter !== undefined) {
+			this.completionFilter = savedCompletionFilter;
+		}
+		if (savedPrimaryHashtag !== undefined) {
+			this.currentPrimaryHashtag = savedPrimaryHashtag;
+		}
+	}
+
+	/**
+	 * Save filter state to workspace storage
+	 */
+	private saveFilterState(): void {
+		this.context.workspaceState.update('timex.currentFilter', this.currentFilter);
+		this.context.workspaceState.update('timex.currentPriorityFilter', this.currentPriorityFilter);
+		this.context.workspaceState.update('timex.completionFilter', this.completionFilter);
+		this.context.workspaceState.update('timex.currentPrimaryHashtag', this.currentPrimaryHashtag);
+	}
 
 	/**
 	 * Detects the priority level from file content
@@ -181,6 +220,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 */
 	setPrimaryHashtagOverride(hashtag: string | null): void {
 		this.currentPrimaryHashtag = hashtag;
+		this.saveFilterState();
 	}
 
 	setTreeView(treeView: vscode.TreeView<TaskFileItem>): void {
@@ -293,6 +333,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refresh(): void {
 		this.currentFilter = ViewFilter.All;
 		this.currentSearchQuery = ''; // Clear search when refreshing
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -304,6 +345,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshDueSoon(): void {
 		this.currentFilter = ViewFilter.DueSoon;
 		this.currentSearchQuery = ''; // Clear search when switching filters
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(true).then(() => {
@@ -315,6 +357,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshDueToday(): void {
 		this.currentFilter = ViewFilter.DueToday;
 		this.currentSearchQuery = ''; // Clear search when switching filters
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(false, false, true).then(() => {
@@ -326,6 +369,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshFutureDueDates(): void {
 		this.currentFilter = ViewFilter.FutureDueDates;
 		this.currentSearchQuery = ''; // Clear search when switching filters
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(false, false, false, true).then(() => {
@@ -337,6 +381,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	refreshOverdue(): void {
 		this.currentFilter = ViewFilter.Overdue;
 		this.currentSearchQuery = ''; // Clear search when switching filters
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles(false, true).then(() => {
@@ -348,6 +393,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	filterByPriority(priorityFilter: PriorityTag): void {
 		this.currentPriorityFilter = priorityFilter;
 		this.currentSearchQuery = ''; // Clear search when changing priority filter
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -359,6 +405,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	setCompletionFilter(filter: CompletionFilter): void {
 		this.completionFilter = filter;
 		this.currentSearchQuery = ''; // Clear search when changing completed filter
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
@@ -370,6 +417,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	searchTasks(query: string): void {
 		this.currentSearchQuery = query.toLowerCase();
 		this.currentFilter = ViewFilter.Search;
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.applyFiltersToExistingData().then(() => {
@@ -383,6 +431,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		if (this.currentFilter === ViewFilter.Search) {
 			this.currentFilter = ViewFilter.All;
 		}
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.applyFiltersToExistingData().then(() => {
@@ -399,6 +448,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		this.currentSearchQuery = '';
 		this.currentPrimaryHashtag = 'all-tags';
 
+		this.saveFilterState();
 		this.updateTreeViewTitle();
 		this.showScanningIndicator();
 		this.scanForTaskFiles().then(() => {
