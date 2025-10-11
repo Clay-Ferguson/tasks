@@ -2,7 +2,17 @@
 
 **Use Markdown files as your Calendar/Task Manager, in a time-series Panel**
 
-A minimalist, flexible VSCode panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple ca#### Tips
+A minimalist, fle#### Filename-Based Display
+
+The panel displays each task using the filename (without the `.md` extension) as the item label. This provides clean, readable task names that match your file organization.
+
+Example:
+- Filename: `fix-login-bug.md`
+- Contents: `# Fix Login Bug\n\nThe login form is not validating...\n\n#task [09/15/2025 05:00:00 PM]`
+- Result: Appears as "fix-login-bug" in the panel
+- Hover tooltip: Shows the folder location (e.g., "tasks/urgent") and timestamp details
+
+This approach keeps the display consistent and lets you organize tasks with descriptive filenames while seeing the folder context on hover.de panel for managing markdown-based items (tasks, todos, notes, reminders) using lightweight hashtags and timestamps in your files. You can define multiple ca#### Tips
 - If you can't find a completed task, ensure Completion filter isn't set to Not Completed.
 - To review only recently urgent items: select Due Soon + Priority 1.
 - Use Due Today for focus on today's tasks only.

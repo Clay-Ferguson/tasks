@@ -53,11 +53,29 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 	 * Creates a markdown tooltip for a task item
 	 * @param label The task label with icons and formatting
 	 * @param timestampString The raw timestamp string from the file
+	 * @param filePath The absolute path to the task file
 	 * @returns A MarkdownString tooltip
 	 */
-	private createTaskTooltip(label: string, timestampString: string): vscode.MarkdownString {
+	private createTaskTooltip(label: string, timestampString: string, filePath: string): vscode.MarkdownString {
 		const timestampLine = timestampString.replace(/[\[\]]/g, '');
 		const cleaned = label.replace(/^([\p{Emoji_Presentation}\p{Extended_Pictographic}]|\S)+\s*(⚠️)?\s*\([^)]*\)\s*/u, '').trim();
+
+		// Calculate relative directory path from workspace root (without filename)
+		let relativeDirectory = '';
+		if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+			const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+			if (filePath.startsWith(workspaceRoot)) {
+				const relativePath = path.relative(workspaceRoot, filePath);
+				// Replace backslashes with forward slashes for consistency across platforms
+				const normalizedPath = relativePath.replace(/\\/g, '/');
+				// Get just the directory part, not the filename
+				relativeDirectory = path.dirname(normalizedPath);
+				// If the file is in the root directory, path.dirname returns '.'
+				if (relativeDirectory === '.') {
+					relativeDirectory = '(root)';
+				}
+			}
+		}
 
 		// Parse the timestamp to get the day of the week
 		// parseTimestamp handles both [MM/DD/YYYY] and [MM/DD/YYYY HH:MM:SS AM/PM] formats
@@ -76,47 +94,10 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// Include both timestamp and day of week in the same code block
 		// If no day available, show just the timestamp
 		const codeContent = dayOfWeek ? `${timestampLine} -- ${dayOfWeek}` : timestampLine;
-		md.appendMarkdown(`*\n**${cleaned}**\n\n\`${codeContent}\``);
+		md.appendMarkdown(`*\n**${relativeDirectory}**\n\n\`${codeContent}\``);
 		return md;
 	}
 
-	// Extracts the first non-blank line from a file
-	private getFileDisplayText(filePath: string): string {
-		try {
-			const content = fs.readFileSync(filePath, 'utf8');
-			const lines = content.split(/\r?\n/);
-			const nonEmptyLines = lines.filter(line => line.trim().length > 0);
-
-			// Special case: if there's only one non-empty line and it starts with "#" or "["
-			// then use the filename as the display text
-			if (nonEmptyLines.length === 1) {
-				const line = nonEmptyLines[0].trim();
-				if (line.startsWith('#') || line.startsWith('[')) {
-					const fileName = path.basename(filePath, '.md'); // Remove .md extension
-					// Strip leading numeric digits and underscores (e.g., "0001_My Fun Task" -> "My Fun Task")
-					const cleanFileName = fileName.replace(/^[\d_]+/, '');
-					return cleanFileName;
-				}
-			}
-
-			const firstNonBlank = nonEmptyLines[0];
-			if (!firstNonBlank) {
-				return '(blank file)';
-			}
-			// Trim and remove leading hashes and whitespace, then remove task-related hashtags
-			let displayText = firstNonBlank.trim().replace(/^#+\s*/, '');
-			// Get primary hashtag without the # symbol for the regex
-			const primaryHashtagWithoutHash = this.getPrimaryHashtag().substring(1);
-			// Remove task hashtags (primary hashtag, #p1, #p2, #p3, #done) and clean up extra whitespace
-			const taskHashtagPattern = new RegExp(`#(${primaryHashtagWithoutHash}|p[123]|done)\\b`, 'g');
-			displayText = displayText.replace(taskHashtagPattern, '').replace(/\s+/g, ' ').trim();
-			// Trim to maximum of 50 characters
-			displayText = displayText.length > 50 ? displayText.substring(0, 50) + '...' : displayText;
-			return displayText;
-		} catch {
-			return '(unable to read file)';
-		}
-	}
 	private _onDidChangeTreeData: vscode.EventEmitter<TaskFileItem | undefined | null | void> = new vscode.EventEmitter<TaskFileItem | undefined | null | void>();
 	readonly onDidChangeTreeData: vscode.Event<TaskFileItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
@@ -581,7 +562,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			const icon = getIconForTaskFile(taskFile);
 
-			const displayText = this.getFileDisplayText(taskFile.filePath);
+			const displayText = path.basename(taskFile.filePath, '.md');
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue && isTask
@@ -600,7 +581,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			);
 
 			// Create markdown tooltip
-			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
+			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString, taskFile.filePath);
 
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
@@ -743,7 +724,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 			const icon = getIconForTaskFile(taskFile);
 
-			const displayText = this.getFileDisplayText(taskFile.filePath);
+			const displayText = path.basename(taskFile.filePath, '.md');
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
 			let label = isOverdue && isTask
@@ -762,7 +743,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			);
 
 			// Create markdown tooltip
-			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString);
+			treeItem.tooltip = this.createTaskTooltip(label, taskFile.timestampString, taskFile.filePath);
 
 			// Set context value based on timestamp presence and far future status
 			// Check if task has a real timestamp (not the default 2050 one)
