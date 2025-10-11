@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { TaskProvider } from './model';
-import { findFolderByWildcard, containsAnyConfiguredHashtag, getIncludeGlobPattern } from './utils';
+import { containsAnyConfiguredHashtag, getIncludeGlobPattern } from './utils';
 import { parseTimestamp, formatTimestamp, TIMESTAMP_REGEX } from './pure-utils';
 import { ViewFilter, PriorityTag, CompletionFilter } from './constants';
 
@@ -399,33 +399,24 @@ export function activate(context: vscode.ExtensionContext) {
 		// Determine the target folder
 		let targetPath = rootPath;
 		if (taskFolderSetting && taskFolderSetting.trim() !== '') {
-			const folderPattern = taskFolderSetting.trim();
-
-			// Handle wildcard patterns
-			let actualFolderName: string | null;
-			if (folderPattern.startsWith('*')) {
-				actualFolderName = findFolderByWildcard(rootPath, folderPattern);
-				if (!actualFolderName) {
-					vscode.window.showErrorMessage(`No folder found matching pattern: ${folderPattern}`);
-					return;
-				}
+			const folderPath = taskFolderSetting.trim();
+			
+			// Check if it's an absolute path
+			if (path.isAbsolute(folderPath)) {
+				targetPath = folderPath;
 			} else {
-				actualFolderName = folderPattern;
+				// If relative path, join with workspace root (backward compatibility)
+				targetPath = path.join(rootPath, folderPath);
 			}
 
-			targetPath = path.join(rootPath, actualFolderName);
-
-			// Create the folder if it doesn't exist (only for non-wildcard folders)
-			if (!folderPattern.startsWith('*') && !fs.existsSync(targetPath)) {
+			// Create the folder if it doesn't exist
+			if (!fs.existsSync(targetPath)) {
 				try {
 					fs.mkdirSync(targetPath, { recursive: true });
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to create task folder: ${error}`);
 					return;
 				}
-			} else if (folderPattern.startsWith('*') && !fs.existsSync(targetPath)) {
-				vscode.window.showErrorMessage(`Wildcard folder not found: ${actualFolderName}`);
-				return;
 			}
 		}
 

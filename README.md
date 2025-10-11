@@ -140,7 +140,7 @@ Settings (File > Preferences > Settings > Extensions > Timex):
 |---------|---------|-------------|
 | `timex.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
 | `timex.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
-| `timex.newTaskFolder` | (empty) | Optional wildcard path for new item files. If starts with `*`, suffix match is used. |
+| `timex.newTaskFolder` | (empty) | Absolute path to folder where new task files will be created. Leave empty to create in workspace root. |
 | `timex.includeGlobs` | `**/*.md` | Glob patterns included when scanning the workspace. Empty list falls back to the default. |
 | `timex.excludeGlobs` | `**/node_modules/**`, `**/.git/**`, `**/.vscode/**`, `**/out/**`, `**/dist/**`, `**/build/**`, `**/.next/**`, `**/target/**` | Glob patterns skipped while scanning for markdown items. Empty list scans every folder. |
 
@@ -155,8 +155,8 @@ Behavior Notes:
 - **`timex.newTaskFolder`**: Specifies the folder where new task files are created when using the + button
   - **Type**: String
   - **Default**: `""` (workspace root)
-  - **Example values**: `"tasks"`, `"todo"`, `"projects/tasks"`
-  - **Note**: Folder path is relative to workspace root. The folder will be created automatically if it doesn't exist.
+  - **Example values**: `"/home/user/tasks"`, `"/tmp/my-tasks"`, `"~/Documents/Tasks"`
+  - **Note**: Supports absolute file system paths. For relative paths (backward compatibility), they are resolved relative to workspace root. The folder will be created automatically if it doesn't exist.
 
 Quick Access:
 You can also set or change this value without opening Settings via the panel:
@@ -222,7 +222,7 @@ This feature is perfect for quickly finding specific tasks in large workspaces w
 
 Fastest capture path—click + and start typing.
 
-**Configuring Task Folder**: You can specify where new task files are created by setting the `timex.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter a folder path relative to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
+**Configuring Task Folder**: You can specify where new task files are created by setting the `timex.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter an absolute file system path (e.g., "/home/user/tasks", "/tmp/my-tasks") or a relative path to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
 #### Right-Click Context Menu
 

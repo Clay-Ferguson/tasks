@@ -49,12 +49,14 @@ export function getExcludeGlobPattern(): string | undefined {
 }
 
 /**
- * Finds a folder in the workspace root that matches a wildcard pattern.
+ * DEPRECATED: Finds a folder in the workspace root that matches a wildcard pattern.
+ * This function is no longer used since newTaskFolder now supports absolute paths.
  * The wildcard is assumed to be a leading asterisk representing a numeric prefix.
  * @param workspaceRoot The workspace root path
  * @param wildcardPattern The pattern like "*My Tasks"
  * @returns The actual folder name if found, or null if not found
  */
+/* Commented out - no longer used with absolute path support
 export function findFolderByWildcard(workspaceRoot: string, wildcardPattern: string): string | null {
 	if (!wildcardPattern.startsWith('*')) {
 		return wildcardPattern; // No wildcard, return as-is
@@ -76,6 +78,7 @@ export function findFolderByWildcard(workspaceRoot: string, wildcardPattern: str
 
 	return null; // No matching folder found
 }
+*/
 
 /**
  * Reads all configured task hashtags from workspace settings.

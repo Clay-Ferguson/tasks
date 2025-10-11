@@ -24,7 +24,7 @@ Lightweight VS Code extension that transforms markdown files into a chronologica
 Three workspace settings:
 - `timex.primaryHashtag`: Active hashtag for filtering (default `#task`)
 - `timex.hashtags`: Available hashtags for picker (default `#task, #todo, #note`) 
-- `timex.newTaskFolder`: Target folder for new tasks (supports `*wildcard` patterns)
+- `timex.newTaskFolder`: Target folder for new tasks (supports absolute file system paths)
 
 ## Task File Format Rules
 
@@ -129,11 +129,12 @@ Primary hashtag changes trigger:
 2. `refresh()` - Full rescan with new hashtag filter
 3. `updateTreeViewTitle()` - UI title update
 
-### Wildcard Folder Resolution
+### Absolute Path Support
 ```typescript
-// Supports patterns like "*Tasks" → finds "001_My Tasks", "ProjectTasks", etc.
-findFolderByWildcard(workspaceRoot, "*Tasks")
-// Only leading asterisk supported
+// Supports both absolute and relative paths
+// Absolute: "/home/user/tasks", "/tmp/my-tasks"
+// Relative: "tasks" (resolved relative to workspace root)
+// Auto-detection using path.isAbsolute()
 ```
 
 ### Sentinel Date Logic

@@ -23,7 +23,7 @@
         "timex.newTaskFolder": {
           "type": "string",
           "default": "",
-          "description": "Folder where new task files will be created (relative to workspace root). Leave empty to create in workspace root.",
+          "description": "Absolute path to folder where new task files will be created. Leave empty to create in workspace root.",
           "order": 10
         },
         "timex.primaryHashtag": {
