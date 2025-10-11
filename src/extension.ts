@@ -420,15 +420,50 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 
-		// Find next available task number
-		let taskNumber = 1;
-		let fileName = `task-${taskNumber.toString().padStart(4, '0')}.md`;
+		// Prompt user for filename
+		const userFileName = await vscode.window.showInputBox({
+			placeHolder: 'Enter filename for new task',
+			prompt: 'Filename (extension .md will be added automatically if not provided)',
+			value: '',
+			validateInput: (value) => {
+				if (!value || value.trim() === '') {
+					return 'Filename cannot be empty';
+				}
+				// Check for invalid filename characters (basic check)
+				const invalidChars = /[<>:"/\\|?*]/g;
+				if (invalidChars.test(value)) {
+					return 'Filename contains invalid characters';
+				}
+				return null;
+			}
+		});
+
+		if (!userFileName) {
+			// User cancelled the input
+			return;
+		}
+
+		// Process the filename
+		let fileName = userFileName.trim();
+		// Add .md extension if not already present (case insensitive)
+		if (!fileName.toLowerCase().endsWith('.md')) {
+			fileName += '.md';
+		}
+
 		let filePath = path.join(targetPath, fileName);
 
-		while (fs.existsSync(filePath)) {
-			taskNumber++;
-			fileName = `task-${taskNumber.toString().padStart(4, '0')}.md`;
-			filePath = path.join(targetPath, fileName);
+		// Check if file already exists
+		if (fs.existsSync(filePath)) {
+			const overwrite = await vscode.window.showWarningMessage(
+				`File "${fileName}" already exists. Do you want to overwrite it?`,
+				{ modal: true },
+				'Overwrite',
+				'Cancel'
+			);
+			
+			if (overwrite !== 'Overwrite') {
+				return;
+			}
 		}
 
 		// Generate timestamp

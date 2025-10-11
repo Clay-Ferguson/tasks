@@ -28,7 +28,7 @@ Think of this extension as a lightweight, chronological stream of dated (or unda
 
 1. Create or open a workspace folder.
 2. Click the Activity Bar icon (checklist) to open the panel.
-3. Press the + button: a new file (e.g. `task-0001.md`) appears with a timestamp and `#p3`.
+3. Press the + button: you'll be prompted to enter a filename, then a new file appears with a timestamp and `#p3`.
 4. Type a short description under the prefilled line (or just rename the file — filename can become the label).
 5. (Optional) Switch the primary hashtag via the tag icon (e.g. from `#task` to `#note`) to view a different stream.
 6. Use the filter (funnel) icon for Due Soon / Overdue / priority slices; search (🔍) narrows further.
@@ -85,7 +85,7 @@ The extension scans your workspace for markdown files containing the active prim
 - **Unified Filtering**: Priority + temporal (All / Due Soon / Overdue) + completion.
 - **Integrated Search**: Filename + file content, layered atop current filters.
 - **Relative Time Badges**: `(5)`, `(0)`, `(-2)`, `(?)` sentinel for no date.
-- **Quick Create**: + button seeds new file with active hashtag + timestamp + `#p3`.
+- **Quick Create**: + button prompts for filename, then creates new file with active hashtag + timestamp + `#p3`.
 - **Timestamp Tools**: Insert current timestamp; add +Day/+Week/+Month/+Year.
 
 ## How to Use
@@ -218,9 +218,9 @@ Funnel icon; unified picker controlling three orthogonal groups (view / priority
 This feature is perfect for quickly finding specific tasks in large workspaces without having to browse through all tasks manually.
 
 #### New Item Button
-- + icon; creates incrementally numbered file (e.g. `task-0001.md`) in configured folder. Prefills with active hashtag + current timestamp + `#p3`.
+- + icon; prompts for filename and creates file with that name (automatically adds `.md` extension if not provided) in configured folder. Prefills with active hashtag + current timestamp + `#p3`.
 
-Fastest capture path—click + and start typing.
+Fastest capture path—click +, enter a descriptive filename, and start typing.
 
 **Configuring Task Folder**: You can specify where new task files are created by setting the `timex.newTaskFolder` configuration. Go to VSCode settings (File → Preferences → Settings) and search for "timex" to find the "New Task Folder" setting. Enter an absolute file system path (e.g., "/home/user/tasks", "/tmp/my-tasks") or a relative path to your workspace root (e.g., "tasks", "todos", or "project/tasks"). Leave empty to create tasks in the workspace root.
 
