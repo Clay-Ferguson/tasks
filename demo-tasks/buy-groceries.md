@@ -2,4 +2,4 @@
 
 Weekly grocery shopping trip. Don't forget milk, eggs, bread, and ingredients for dinner this weekend.
 
-#task [09/15/2025 06:00:00 PM] #p3
+#todo [09/15/2025 06:00:00 PM] #p3
