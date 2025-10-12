@@ -558,14 +558,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < today;
 			const isFarFuture = isFarFutureDate(taskFile.timestamp);
-			const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
+			const isTodo = taskFile.tagsInFile.has('#todo');
 
 			const icon = getIconForTaskFile(taskFile);
 
 			const displayText = path.basename(taskFile.filePath, '.md');
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
-			let label = isOverdue && isTask
+			let label = isOverdue && isTodo
 				? `${icon}⚠️ (${daysDiff}) ${displayText}`
 				: `${icon} (${daysDiff}) ${displayText}`;
 
@@ -720,14 +720,14 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < today;
 			const isFarFuture = isFarFutureDate(taskFile.timestamp);
-			const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
+			const isTodo = taskFile.tagsInFile.has('#todo'); 
 
 			const icon = getIconForTaskFile(taskFile);
 
 			const displayText = path.basename(taskFile.filePath, '.md');
 			// Show days difference in parentheses at the beginning of the task description
 			// For overdue items, show warning icon immediately after priority icon
-			let label = isOverdue && isTask
+			let label = isOverdue && isTodo
 				? `${icon}⚠️ (${daysDiff}) ${displayText}`
 				: `${icon} (${daysDiff}) ${displayText}`;
 

@@ -148,7 +148,7 @@ export function getIconForTaskFile(taskFile: {
 	isCompleted: boolean;
 	tagsInFile: Set<string>;
 }): string {
-	const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
+	const isTodo = taskFile.tagsInFile.has('#todo'); 
 
 	let icon = '⚪';
 
@@ -156,7 +156,7 @@ export function getIconForTaskFile(taskFile: {
 		icon = '📝';
 	}
 
-	if (isTask) {
+	if (isTodo) {
 		if (taskFile.isCompleted) {
 			icon = '✅';
 		} else if (taskFile.priority === PriorityTag.High) {
