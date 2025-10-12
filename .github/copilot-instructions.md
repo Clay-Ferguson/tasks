@@ -8,7 +8,7 @@ Lightweight VS Code extension that transforms markdown files into a chronologica
 ## Architecture Overview
 
 ### Entry Point (`src/extension.ts`)
-- **Commands Registration**: 15+ commands from timestamp insertion to task deletion
+- **Commands Registration**: 17+ commands from timestamp insertion to ordinal file management
 - **File Watcher**: Real-time `.md` file monitoring with 100ms debounce
 - **Tree View Setup**: Wires `TaskProvider` to VS Code's tree view API
 - **Timestamp Manipulation**: `addTimeToTask()` preserves original format (date-only vs full datetime)
@@ -143,6 +143,76 @@ Year 2050+ indicates "no real timestamp":
 - Always sorts to bottom
 - Gets far-future icon treatment
 - Used for files without `[MM/DD/YYYY...]` patterns
+
+## Ordinal-Based File Management (NEW)
+
+Recent addition providing file organization capabilities using numeric prefixes.
+
+### Commands Added
+- `timex.renumberFiles` - "Ordinal: Re-Number Files" 
+- `timex.insertOrdinalFile` - "Ordinal: Insert File"
+
+### Core Logic (`src/utils.ts`)
+```typescript
+// Key functions for ordinal file management
+scanForNumberedItems(workspaceRoot) // Finds files matching /^(\d+)_(.*)$/
+verifyNamesAreUnique(numberedItems) // Prevents duplicate names (ignoring ordinals)  
+renumberItems(numberedItems)        // Renumbers with 00010, 00020, 00030... pattern
+generateNextOrdinalFilename(path)   // Creates next ordinal file (+1 from selected)
+extractOrdinalFromFilename(name)    // Parses ordinal number from filename
+```
+
+### File Pattern Recognition
+- **Regex**: `/^(\d+)_(.*)$/` matches files like `001_task.md`, `0123_project.md`
+- **Skips**: Hidden files (starting with `.` or `_`)
+- **Operates on**: Both files and folders in workspace root only (non-recursive)
+
+### Re-Number Files Workflow
+1. Right-click in file explorer → "Ordinal: Re-Number Files"
+2. Scans workspace root for ordinal files/folders
+3. **Preserves existing order** (sorts by current numeric prefix, not alphabetically)
+4. Validates unique names (after removing ordinal prefixes)
+5. Shows confirmation with count of items to rename
+6. Renumbers starting at `00010`, incrementing by 10
+7. Skips files already correctly numbered
+
+### Insert File Workflow  
+1. Right-click on ordinal file (e.g., `00020_requirements.md`)
+2. "Ordinal: Insert File" appears in context menu (conditional: `resourceFilename =~ /^\\d+_.+/`)
+3. Parses current ordinal (20), increments (+1 = 21)
+4. Creates `00021_new.md` in same directory
+5. Opens new empty file in editor
+
+### Menu Integration
+```json
+// package.json - Context menu conditional display
+"explorer/context": [
+  {
+    "command": "timex.renumberFiles",
+    "group": "7_modification"
+  },
+  {
+    "command": "timex.insertOrdinalFile", 
+    "group": "7_modification",
+    "when": "resourceFilename =~ /^\\d+_.+/"  // Only for ordinal files
+  }
+]
+```
+
+### Key Implementation Notes
+- **Order Preservation**: Unlike typical alphabetical sorting, maintains current numeric sequence
+- **5-digit Zero Padding**: Ensures consistent `00010_` format for proper file explorer sorting
+- **Gap Strategy**: 10-increment spacing allows easy manual insertion between items
+- **Safety Validations**: Duplicate name detection, file existence checks, user confirmations
+- **Error Handling**: Comprehensive try/catch with user-friendly error messages
+
+### Display Label Stripping
+```typescript
+// Existing logic already handles ordinal prefix removal for display
+fileName.replace(/^[\d_]+/, ''); // Strip "0001_" prefixes from labels
+```
+
+This ordinal system enables project phase organization, sequential task management, and ordered file workflows while maintaining the extension's core task management functionality.
 
 ## Extension Points for New Features
 
