@@ -86,7 +86,7 @@ export function findFolderByWildcard(workspaceRoot: string, wildcardPattern: str
  */
 export function getAllConfiguredHashtags(): string[] {
 	const config = vscode.workspace.getConfiguration('timex');
-	const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+	const hashtagsString = config.get<string>('hashtags', '#todo, #note');
 	return hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 }
 

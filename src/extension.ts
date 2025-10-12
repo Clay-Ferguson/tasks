@@ -213,7 +213,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Get configuration for available hashtags
 		const config = vscode.workspace.getConfiguration('timex');
-		const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+		const hashtagsString = config.get<string>('hashtags', '#todo, #note');
 
 		// Parse hashtags from comma-delimited string
 		const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
@@ -476,9 +476,9 @@ export function activate(context: vscode.ExtensionContext) {
 		let hashtagToUse = primaryHashtag;
 		if (primaryHashtag === 'all-tags') {
 			const config = vscode.workspace.getConfiguration('timex');
-			const hashtagsString = config.get<string>('hashtags', '#task, #todo, #note');
+			const hashtagsString = config.get<string>('hashtags', '#todo, #note');
 			const hashtags = hashtagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-			hashtagToUse = hashtags.length > 0 ? hashtags[0] : '#task'; // fallback to #task if no hashtags configured
+			hashtagToUse = hashtags.length > 0 ? hashtags[0] : '#todo'; // fallback to #todo if no hashtags configured
 		}
 		const taskContent = `\n\n${hashtagToUse} ${timestamp} #${PriorityTag.Low}`;
 

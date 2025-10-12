@@ -8,7 +8,7 @@ The panel displays each task using the filename (without the `.md` extension) as
 
 Example:
 - Filename: `fix-login-bug.md`
-- Contents: `# Fix Login Bug\n\nThe login form is not validating...\n\n#task [09/15/2025 05:00:00 PM]`
+- Contents: `# Fix Login Bug\n\nThe login form is not validating...\n\n#todo [09/15/2025 05:00:00 PM]`
 - Result: Appears as "fix-login-bug" in the panel
 - Hover tooltip: Shows the folder location (e.g., "tasks/urgent") and timestamp details
 
@@ -28,7 +28,7 @@ The view filters provide complete, non-overlapping coverage of all possible due 
 - **Any Time**: All tasks regardless of due date
 
 #### Rationale
-The view filters are designed to provide clear temporal boundaries without overlap, allowing you to focus on specific time horizons for your work. Unlike traditional systems, overdue tasks are separate from "due soon" to avoid cluttering your forward-looking planning view. hashtags (e.g. `#task, #todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
+The view filters are designed to provide clear temporal boundaries without overlap, allowing you to focus on specific time horizons for your work. Unlike traditional systems, overdue tasks are separate from "due soon" to avoid cluttering your forward-looking planning view. hashtags (e.g. `#todo, #note`) and switch the **active primary hashtag** live; only files containing the active one are listed. 
 
 ![Task Panel Screenshot](task-panel-screenshot.png)
 
@@ -40,7 +40,7 @@ Think of this extension as a lightweight, chronological stream of dated (or unda
 2. Click the Activity Bar icon (checklist) to open the panel.
 3. Press the + button: you'll be prompted to enter a filename, then a new file appears with a timestamp and `#p3`.
 4. Type a short description under the prefilled line (or just rename the file — filename can become the label).
-5. (Optional) Switch the primary hashtag via the tag icon (e.g. from `#task` to `#note`) to view a different stream.
+5. (Optional) Switch the primary hashtag via the tag icon (e.g. from `#todo` to `#note`) to view a different stream.
 6. Use the filter (funnel) icon for Due Soon / Overdue / priority slices; search (🔍) narrows further.
 7. Add or edit timestamps manually or with +Day/+Week/+Month/+Year commands.
 8. Mark something done by adding `#done` anywhere in the file.
@@ -49,7 +49,7 @@ You now have a living time series of work: closest due items float to your atten
 
 ### Minimal Example
 ```markdown
-#task [09/30/2025 05:00:00 PM] #p2
+#todo [09/30/2025 05:00:00 PM] #p2
 ```
 Filename: `plan-sprint.md` → Displays as: `🟠 (3) Plan sprint` (if 3 days out)
 
@@ -64,7 +64,7 @@ Filename: `plan-sprint.md` → Displays as: `🟠 (3) Plan sprint` (if 3 days ou
 - Need fast capture in plain files, not structured tasks
 - Want sorting + proximity awareness without rigid scheduling
 - Prefer grep‑able, versionable data over proprietary formats
-- Maintain parallel streams (e.g. `#task` for actionable, `#note` for reference, `#idea` for backlog)
+- Maintain parallel streams (e.g. `#todo` for actionable, `#note` for reference, `#idea` for backlog)
 
 Jump to: [Features](#features) · [How to Use](#how-to-use) · [Configuration](#configuration) · [Filtering & Search](#filtering--search)
 
@@ -76,16 +76,16 @@ Jump to: [Features](#features) · [How to Use](#how-to-use) · [Configuration](#
 - `🔴 (?) Plan vacation` - No due date specified
 - `✅ (-5) Completed presentation` - Completed task (5 days past due date)
 
-An “Item” (task / todo / note / reminder) is just a markdown file containing the currently active primary hashtag (default `#task`). Optionally add a timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]` to give it a due date. The file is then auto‑indexed and displayed.
+An “Item” (task / todo / note / reminder) is just a markdown file containing the currently active primary hashtag (default `#todo`). Optionally add a timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]` to give it a due date. The file is then auto‑indexed and displayed.
 
 
 ## Overview (how it works)
 
-The extension scans your workspace for markdown files containing the active primary hashtag, extracts optional due dates, and displays them in a filterable, prioritized list with overdue indicators. Timex assumes that, When it encounters a file containing. The hashtag `#task` for example, that the entire file represents the definition of that task. So this extension should not be used to manage things like TODOs Where you might have multiple `#todo` hashtags in the same file. This is because this extension assumes that each file represents only one single thing to be tracked. In other words, when your project is scanned, and a tag like `#task` is found in a file, that tells the extension the file itself, is a task definition. 
+The extension scans your workspace for markdown files containing the active primary hashtag, extracts optional due dates, and displays them in a filterable, prioritized list with overdue indicators. Timex assumes that, When it encounters a file containing. The hashtag `#todo` for example, that the entire file represents the definition of that task. So this extension should not be used to manage things like TODOs Where you might have multiple `#todo` hashtags in the same file. This is because this extension assumes that each file represents only one single thing to be tracked. In other words, when your project is scanned, and a tag like `#todo` is found in a file, that tells the extension the file itself, is a task definition. 
 
 ## Features
 
-- **Multi‑Hashtag Support**: Configure a comma list (default `#task, #todo, #note`) and switch active context instantly.
+- **Multi‑Hashtag Support**: Configure a comma list (default `#todo, #todo, #note`) and switch active context instantly.
 - **Primary Hashtag Selector**: Tag icon opens a picker; selection updates the panel and title bar.
 - **Dynamic Title Bar**: Shows current primary hashtag (e.g. `#todo - ALL - P*`).
 - **Automatic Item Detection**: Scans `.md` files for active hashtag.
@@ -108,7 +108,7 @@ Manual: Create a `.md` file that contains the active primary hashtag somewhere i
 
 Required minimum for inclusion:
 1. `.md` file
-2. Contains the active primary hashtag (defaults to `#task` until you switch)
+2. Contains the active primary hashtag (defaults to `#todo` until you switch)
 
 Optional enhancements:
 - Timestamp `[MM/DD/YYYY HH:MM:SS AM/PM]` or `[MM/DD/YYYY]`
@@ -119,7 +119,7 @@ Optional enhancements:
 ```markdown
 # Project Planning
 
-Need to finish the quarterly report #task #p1
+Need to finish the quarterly report #todo #p1
 
 ## Due Date
 [09/15/2025 05:00:00 PM]
@@ -234,7 +234,7 @@ If the file has only a single non-empty line (starting with `#` or `[`), the fil
 
 Example:
 - Filename: `fix-login-bug.md`
-- Contents: `#task [09/15/2025 05:00:00 PM]`
+- Contents: `#todo [09/15/2025 05:00:00 PM]`
 - Result: Appears as “Fix login bug”.
 
 Great for ultra-fast capture—just create a descriptively named file with the hashtag.
@@ -245,8 +245,8 @@ Settings (File > Preferences > Settings > Extensions > Timex):
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `timex.primaryHashtag` | `#task` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
-| `timex.hashtags` | `#task, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
+| `timex.primaryHashtag` | `#todo` | Active hashtag scanned for actionable items. Change via the tag toolbar icon or directly here. |
+| `timex.hashtags` | `#todo, #todo, #note` | Comma‑separated candidate hashtags available in the selection picker. Whitespace trimmed; empty entries ignored. |
 | `timex.newTaskFolder` | (empty) | Absolute path to folder where new task files will be created. Leave empty to create in workspace root. |
 | `timex.includeGlobs` | `**/*.md` | Glob patterns included when scanning the workspace. Empty list falls back to the default. |
 | `timex.excludeGlobs` | `**/node_modules/**`, `**/.git/**`, `**/.vscode/**`, `**/out/**`, `**/dist/**`, `**/build/**`, `**/.next/**`, `**/target/**` | Glob patterns skipped while scanning for markdown items. Empty list scans every folder. |
@@ -284,7 +284,7 @@ To access settings:
 ### Supported Hashtags
 
 Core:
-- Active Primary (configurable): marks a file as an actionable item (default `#task`, switchable to any candidate like `#todo`, `#note`, `#idea`).
+- Active Primary (configurable): marks a file as an actionable item (default `#todo`, switchable to any candidate like `#todo`, `#note`, `#idea`).
 - `#done` – Completed item (hidden unless Completion filter includes it).
 - `#p1`, `#p2`, `#p3` – High / Medium / Low priority (absence = treated as `#p1`).
 

@@ -3,7 +3,7 @@
 Essential knowledge for AI coding agents to be immediately productive in this markdown-based task management extension.
 
 ## Core Purpose
-Lightweight VS Code extension that transforms markdown files into a chronological task manager. Scans workspace for `.md` files containing configurable hashtags (default `#task`), extracts timestamps and priorities, displays them in a filterable tree view with due-date proximity indicators.
+Lightweight VS Code extension that transforms markdown files into a chronological task manager. Scans workspace for `.md` files containing configurable hashtags (default `#todo`), extracts timestamps and priorities, displays them in a filterable tree view with due-date proximity indicators.
 
 ## Architecture Overview
 
@@ -22,8 +22,8 @@ Lightweight VS Code extension that transforms markdown files into a chronologica
 
 ### Configuration (`package.json`)
 Three workspace settings:
-- `timex.primaryHashtag`: Active hashtag for filtering (default `#task`)
-- `timex.hashtags`: Available hashtags for picker (default `#task, #todo, #note`) 
+- `timex.primaryHashtag`: Active hashtag for filtering (default `#todo`)
+- `timex.hashtags`: Available hashtags for picker (default `#todo, #todo, #note`) 
 - `timex.newTaskFolder`: Target folder for new tasks (supports absolute file system paths)
 
 ## Task File Format Rules
@@ -34,7 +34,7 @@ Three workspace settings:
 # Files starting with `_` or `.` are ignored
 # Directories: node_modules, .git, .vscode, out, dist, build, .next, target are skipped
 
-#task [09/30/2025 02:00:00 PM] #p2  # ← This line makes it a task
+#todo [09/30/2025 02:00:00 PM] #p2  # ← This line makes it a task
 Additional content can be anything...
 ```
 
@@ -243,7 +243,7 @@ Prefer `rebuildTaskDisplay()` pattern over full rescans for operations that only
 
 **Minimal (filename-derived label):**
 ```markdown
-#task [09/30/2025 05:00:00 PM] #p2
+#todo [09/30/2025 05:00:00 PM] #p2
 ```
 
 **Full content:**
@@ -252,7 +252,7 @@ Prefer `rebuildTaskDisplay()` pattern over full rescans for operations that only
 
 The login form is not validating email addresses properly.
 
-#task [09/12/2025 02:00:00 PM] #p1
+#todo [09/12/2025 02:00:00 PM] #p1
 
 ## Steps to reproduce
 - Enter invalid email format  

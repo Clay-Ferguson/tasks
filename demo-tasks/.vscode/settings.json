@@ -1,5 +1,5 @@
 {
     "timex.newTaskFolder": "./",
     "timex.hashtags": "#task, #todo, #note",
-    "timex.primaryHashtag": "#note"
+    "timex.primaryHashtag": "#todo"
 }

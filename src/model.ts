@@ -171,7 +171,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 
 	/**
 	 * Gets the current primary hashtag from runtime override or VSCode workspace configuration
-	 * @returns The primary hashtag string (e.g., "#task") or "all-tags" for no filtering
+	 * @returns The primary hashtag string (e.g., "#todo") or "all-tags" for no filtering
 	 */
 	getPrimaryHashtag(): string {
 		// Check runtime override first
@@ -182,7 +182,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 		// Fall back to cached configuration
 		if (this.cachedPrimaryHashtag === null) {
 			const config = vscode.workspace.getConfiguration('timex');
-			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#task');
+			this.cachedPrimaryHashtag = config.get<string>('primaryHashtag', '#todo');
 		}
 		return this.cachedPrimaryHashtag;
 	}
@@ -558,7 +558,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < today;
 			const isFarFuture = isFarFutureDate(taskFile.timestamp);
-			const isTask = taskFile.tagsInFile.has('#task');
+			const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
 
 			const icon = getIconForTaskFile(taskFile);
 
@@ -720,7 +720,7 @@ export class TaskProvider implements vscode.TreeDataProvider<TaskFileItem> {
 			const daysDiff = getDaysDifference(taskFile.timestamp);
 			const isOverdue = taskFile.timestamp < today;
 			const isFarFuture = isFarFutureDate(taskFile.timestamp);
-			const isTask = taskFile.tagsInFile.has('#task');
+			const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
 
 			const icon = getIconForTaskFile(taskFile);
 

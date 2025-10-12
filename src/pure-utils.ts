@@ -148,7 +148,7 @@ export function getIconForTaskFile(taskFile: {
 	isCompleted: boolean;
 	tagsInFile: Set<string>;
 }): string {
-	const isTask = taskFile.tagsInFile.has('#task');
+	const isTask = taskFile.tagsInFile.has('#todo'); // #todo-0: rename to isTodo
 
 	let icon = '⚪';
 
