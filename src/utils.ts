@@ -267,3 +267,41 @@ export async function renumberItems(numberedItems: NumberedItem[]): Promise<void
 		throw new Error(`Failed to rename ${errors.length} items:\n${errorMessages}`);
 	}
 }
+
+/**
+ * Extracts the ordinal number from a filename with ordinal prefix
+ * @param filename The filename to parse (e.g., "00012_something.md")
+ * @returns The ordinal number or null if not found
+ */
+export function extractOrdinalFromFilename(filename: string): number | null {
+	const match = filename.match(NUMBERED_ITEM_REGEX);
+	if (match) {
+		return parseInt(match[1], 10);
+	}
+	return null;
+}
+
+/**
+ * Generates the next ordinal filename after a given ordinal file
+ * @param selectedFilePath The full path to the selected file with ordinal prefix
+ * @returns Object containing the new filename and full path, or null if not an ordinal file
+ */
+export function generateNextOrdinalFilename(selectedFilePath: string): { filename: string; fullPath: string } | null {
+	const filename = path.basename(selectedFilePath);
+	const directory = path.dirname(selectedFilePath);
+	
+	const currentOrdinal = extractOrdinalFromFilename(filename);
+	if (currentOrdinal === null) {
+		return null;
+	}
+	
+	const nextOrdinal = currentOrdinal + 1;
+	const nextPrefix = generateNumberPrefix(nextOrdinal);
+	const newFilename = `${nextPrefix}new.md`;
+	const newFullPath = path.join(directory, newFilename);
+	
+	return {
+		filename: newFilename,
+		fullPath: newFullPath
+	};
+}

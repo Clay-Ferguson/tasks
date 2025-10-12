@@ -140,6 +140,10 @@
       {
         "command": "timex.renumberFiles",
         "title": "Ordinal: Re-Number Files"
+      },
+      {
+        "command": "timex.insertOrdinalFile",
+        "title": "Ordinal: Insert File"
       }
     ],
     "views": {
@@ -265,6 +269,9 @@
           "command": "timex.renumberFiles"
         },
         {
+          "command": "timex.insertOrdinalFile"
+        },
+        {
           "command": "timex.about"
         },
         {
@@ -281,6 +288,11 @@
         {
           "command": "timex.renumberFiles",
           "group": "7_modification"
+        },
+        {
+          "command": "timex.insertOrdinalFile",
+          "group": "7_modification",
+          "when": "resourceFilename =~ /^\\d+_.+/"
         }
       ]
     }

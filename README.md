@@ -203,6 +203,29 @@ Access this feature by **right-clicking in the VS Code file explorer** and selec
 3. Right-click in file explorer → "Re-Number Files"
 4. Result: `00010_start.md`, `00020_urgent-fix.md`, `00030_middle.md`, `00040_end.md`
 
+### Insert File Feature
+
+For rapid file creation within your ordinal sequence, use the **"Ordinal: Insert File"** feature.
+
+#### How to Use
+1. **Right-click on any ordinal file** (e.g., `00020_requirements.md`)
+2. Select **"Ordinal: Insert File"** from the context menu
+3. A new file is automatically created with the next ordinal number: `00021_new.md`
+4. The new file opens immediately in the editor, ready for editing
+
+#### Example Usage
+- Selected file: `00020_requirements.md`
+- Created file: `00021_new.md`
+- You can then rename it to something meaningful like `00021_user-stories.md`
+
+#### Key Benefits
+- **Automatic Numbering**: No need to calculate the next ordinal manually
+- **Instant Creation**: File is created and opened in one action
+- **Perfect Insertion**: Places new files exactly where you want them in the sequence
+- **Context Aware**: Only appears when right-clicking on files with ordinal prefixes
+
+This feature makes it incredibly fast to expand your ordinal file structure—simply right-click where you want to insert a new item, and it's ready for editing immediately.
+
 This system gives you the benefits of ordered organization while maintaining the flexibility to reorganize as your project evolves.
 
 #### Minimal Filename-Driven Items
