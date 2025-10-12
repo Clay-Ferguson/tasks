@@ -131,6 +131,80 @@ Need to finish the quarterly report #task #p1
 
 Only the presence of the active hashtag matters for indexing. Everything else is optional metadata.
 
+## Ordinal-Based File Organization
+
+Timex includes a powerful file organization feature that helps you maintain ordered sequences of files and folders using numeric prefixes. This is particularly useful for organizing project phases, sequential tasks, or any workflow where order matters.
+
+### How Ordinal Numbering Works
+
+Files and folders can be prefixed with numbers followed by an underscore to establish their order:
+
+```
+00010_project-setup.md
+00020_requirements-gathering.md  
+00030_design-phase.md
+00040_development.md
+00050_testing.md
+```
+
+The ordinal prefixes serve two key purposes:
+1. **Visual Organization**: Files appear in logical sequence in your file explorer
+2. **Flexible Insertion**: Large gaps (10, 20, 30...) make it easy to insert new items between existing ones
+
+### Re-Number Files Feature
+
+Access this feature by **right-clicking in the VS Code file explorer** and selecting **"Re-Number Files"**.
+
+#### What It Does
+- Scans the workspace root for files and folders starting with digits followed by underscore (e.g., `001_`, `123_`)
+- Preserves the existing order of items
+- Renumbers them with consistent 5-digit prefixes starting at `00010` and incrementing by 10
+- Maintains proper spacing for future insertions
+
+#### Example Transformation
+
+**Before renumbering:**
+```
+1_project-setup.md
+23_requirements.md  
+100_design.md
+105_wireframes.md
+200_development.md
+```
+
+**After renumbering:**
+```
+00010_project-setup.md
+00020_requirements.md
+00030_design.md
+00040_wireframes.md
+00050_development.md
+```
+
+#### Key Features
+
+- **Order Preservation**: Maintains your existing file sequence—no alphabetical resorting
+- **Duplicate Name Detection**: Prevents renaming when multiple files would have identical names (ignoring ordinal prefixes)
+- **Smart Skipping**: Files already correctly numbered are left unchanged
+- **Safety First**: Shows confirmation dialog with count of files to be renamed
+- **Progress Feedback**: Visual progress indicator during the renumbering process
+
+#### Best Practices
+
+1. **Start with Gaps**: Use increments of 10 (00010, 00020, 00030) to leave room for insertions
+2. **Insert Between**: Add new files like `00015_new-task.md` between existing items
+3. **Renumber Periodically**: Run the renumber command when gaps get too small or numbering becomes inconsistent
+4. **Consistent Naming**: Ensure file names after the underscore are unique to avoid conflicts
+
+#### Workflow Example
+
+1. Create initial files: `001_start.md`, `002_middle.md`, `003_end.md`
+2. Add urgent task between start and middle: `0015_urgent-fix.md`
+3. Right-click in file explorer → "Re-Number Files"
+4. Result: `00010_start.md`, `00020_urgent-fix.md`, `00030_middle.md`, `00040_end.md`
+
+This system gives you the benefits of ordered organization while maintaining the flexibility to reorganize as your project evolves.
+
 #### Minimal Filename-Driven Items
 
 If the file has only a single non-empty line (starting with `#` or `[`), the filename (sans extension and numeric/underscore prefix) becomes the display label.
